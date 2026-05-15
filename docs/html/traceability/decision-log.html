@@ -1,0 +1,1289 @@
+﻿<!DOCTYPE html>
+<html lang="en" data-theme="light" style="--rec-label: '★ Recommended'">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <title>Decision Log (Open + Closed)</title>
+  <style>
+    /* ============================================================
+       TOKENS
+       ============================================================ */
+    :root {
+      --bg: #FAFAF7;
+      --surface: #FFFFFF;
+      --surface-2: #F5F5F0;
+      --surface-3: #EFEEE8;
+      --text: #1A1A1A;
+      --text-muted: #4A4A45;
+      --text-subtle: #6B6B66;
+      --accent: #D97757;
+      --accent-hover: #C56843;
+      --accent-soft: #FBEEE6;
+      --accent-border: #F0D5C4;
+      --accent-strong: #A85533;
+      --border: #E5E4DC;
+      --border-strong: #CDCDC4;
+      --code-bg: #F5F2EC;
+      --code-text: #2A2A2A;
+      --info: #2563EB;
+      --info-soft: #EFF6FF;
+      --info-border: #BFDBFE;
+      --warn: #B45309;
+      --warn-soft: #FFFBEB;
+      --warn-border: #FDE68A;
+      --danger: #B91C1C;
+      --danger-soft: #FEF2F2;
+      --danger-border: #FECACA;
+      --success: #047857;
+      --success-soft: #ECFDF5;
+      --success-border: #A7F3D0;
+      --decision: #6D28D9;
+      --decision-soft: #F5F3FF;
+      --decision-border: #DDD6FE;
+      --shadow-sm: 0 1px 2px rgba(20, 14, 8, 0.04);
+      --shadow: 0 1px 2px rgba(20, 14, 8, 0.04), 0 4px 12px rgba(20, 14, 8, 0.06);
+      --shadow-lg: 0 8px 24px rgba(20, 14, 8, 0.10);
+      --radius: 12px;
+      --radius-sm: 8px;
+      --radius-lg: 16px;
+      --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', 'Noto Sans CJK JP', 'Noto Sans CJK KR', sans-serif;
+      --font-mono: 'SF Mono', Menlo, Consolas, monospace;
+      --z-progress: 200;
+      --z-topbar: 100;
+      --z-drawer: 300;
+      --z-backdrop: 250;
+    }
+
+    [data-theme="dark"] {
+      --bg: #1A1714;
+      --surface: #221E1A;
+      --surface-2: #2A2520;
+      --surface-3: #322C26;
+      --text: #F5F0E8;
+      --text-muted: #C8C0B6;
+      --text-subtle: #9A938A;
+      --accent: #E89572;
+      --accent-hover: #F2A87F;
+      --accent-soft: #3A2A22;
+      --accent-border: #5A3D2E;
+      --accent-strong: #F5B493;
+      --border: #2E2924;
+      --border-strong: #463F38;
+      --code-bg: #1E1B17;
+      --code-text: #E8E2D8;
+      --info: #93C5FD;
+      --info-soft: #1E2A3D;
+      --info-border: #2A4365;
+      --warn: #FBBF24;
+      --warn-soft: #332817;
+      --warn-border: #5C4520;
+      --danger: #FCA5A5;
+      --danger-soft: #3A1F1F;
+      --danger-border: #5C2A2A;
+      --success: #6EE7B7;
+      --success-soft: #1A3329;
+      --success-border: #1F5C45;
+      --decision: #C4B5FD;
+      --decision-soft: #2A1F40;
+      --decision-border: #4A3870;
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 4px 12px rgba(0, 0, 0, 0.35);
+      --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.45);
+    }
+
+    /* ============================================================
+       BASE
+       ============================================================ */
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+    body {
+      margin: 0;
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      font-size: 16px;
+      -webkit-font-smoothing: antialiased;
+      transition: background-color 0.2s, color 0.2s;
+    }
+    ::selection { background: var(--accent-soft); color: var(--accent-strong); }
+
+    /* Skip link */
+    .skip-link {
+      position: absolute;
+      top: -100px; left: 8px;
+      padding: 10px 16px;
+      background: var(--accent);
+      color: #fff;
+      text-decoration: none;
+      border-radius: var(--radius-sm);
+      font-weight: 500;
+      z-index: 1000;
+      transition: top 0.15s;
+    }
+    .skip-link:focus { top: 8px; }
+
+    /* SVG sprite container (hidden) */
+    .icon-sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+    .icon { display: inline-block; flex-shrink: 0; vertical-align: middle; stroke: currentColor; fill: none; }
+
+    /* Scroll progress bar */
+    .scroll-progress {
+      position: fixed;
+      top: 0; left: 0;
+      height: 2px;
+      width: 0;
+      background: var(--accent);
+      z-index: var(--z-progress);
+      transition: width 0.05s linear;
+    }
+
+    /* ============================================================
+       TOPBAR
+       ============================================================ */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: var(--z-topbar);
+      background: rgba(250, 250, 247, 0.85);
+      backdrop-filter: saturate(180%) blur(12px);
+      -webkit-backdrop-filter: saturate(180%) blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    [data-theme="dark"] .topbar { background: rgba(26, 23, 20, 0.85); }
+    .topbar-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      color: var(--text);
+      font-size: 14px;
+    }
+    .brand-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-soft);
+      animation: brand-pulse 2.8s ease-in-out infinite;
+    }
+    @keyframes brand-pulse {
+      0%, 100% { box-shadow: 0 0 0 4px var(--accent-soft); }
+      50%      { box-shadow: 0 0 0 7px transparent; }
+    }
+    .topbar-actions { display: flex; gap: 6px; align-items: center; }
+    .icon-btn {
+      width: 40px; height: 40px;
+      display: inline-flex; align-items: center; justify-content: center;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-muted);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s, background-color 0.15s;
+      padding: 0;
+    }
+    .icon-btn .icon { width: 18px; height: 18px; stroke-width: 2; }
+    .icon-btn[hidden] { display: none; }
+
+    /* ============================================================
+       LAYOUT
+       ============================================================ */
+    .layout {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 48px;
+      padding: 32px 24px 96px;
+    }
+    .content { min-width: 0; }
+
+    /* ============================================================
+       TOC (desktop + mobile drawer)
+       ============================================================ */
+    .toc {
+      position: sticky;
+      top: 80px;
+      align-self: start;
+      max-height: calc(100vh - 100px);
+      overflow-y: auto;
+      padding-right: 8px;
+    }
+    .toc::-webkit-scrollbar { width: 6px; }
+    .toc::-webkit-scrollbar-track { background: transparent; }
+    .toc::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
+    .toc-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 12px 12px;
+    }
+    .toc-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-subtle);
+      margin: 0;
+    }
+    .toc-close { display: none; }
+    .toc-nav { display: flex; flex-direction: column; gap: 2px; }
+    .toc-nav a {
+      display: flex; align-items: center;
+      min-height: 36px;
+      padding: 8px 14px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 13.5px;
+      border-left: 2px solid transparent;
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      transition: color 0.15s, background-color 0.15s, border-color 0.15s;
+      line-height: 1.4;
+    }
+    .toc-nav a.active {
+      color: var(--accent);
+      border-left-color: var(--accent);
+      background: var(--accent-soft);
+      font-weight: 500;
+    }
+    .toc-nav a.lvl-3 { padding-left: 26px; font-size: 12.5px; }
+    .toc-backdrop {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      z-index: var(--z-backdrop);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    /* ============================================================
+       DOC HEADER
+       ============================================================ */
+    .doc-header {
+      margin-bottom: 40px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+    .doc-eyebrow {
+      display: inline-flex; align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      background: var(--accent-soft);
+      color: var(--accent-strong);
+      border: 1px solid var(--accent-border);
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      margin-bottom: 16px;
+    }
+    .doc-title {
+      font-size: clamp(28px, 3vw + 16px, 40px);
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      margin: 0 0 12px;
+      color: var(--text);
+      text-wrap: balance;
+    }
+    .doc-subtitle {
+      font-size: clamp(15px, 0.6vw + 13px, 18px);
+      color: var(--text-muted);
+      line-height: 1.55;
+      margin: 0 0 20px;
+      max-width: 75ch;
+      text-wrap: pretty;
+    }
+    .doc-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      font-size: 13px;
+      color: var(--text-subtle);
+    }
+    .doc-meta-item { display: inline-flex; align-items: center; gap: 6px; }
+    .doc-meta .icon { width: 14px; height: 14px; stroke-width: 2; }
+
+    /* ============================================================
+       CONTENT (typography)
+       ============================================================ */
+    .content h1, .content h2, .content h3, .content h4 {
+      color: var(--text);
+      line-height: 1.3;
+      letter-spacing: -0.01em;
+      scroll-margin-top: 80px;
+      text-wrap: balance;
+    }
+    .content h2 {
+      font-size: 26px;
+      font-weight: 600;
+      margin: 56px 0 16px;
+      padding-top: 8px;
+      position: relative;
+    }
+    .content h3 {
+      font-size: 19px;
+      font-weight: 600;
+      margin: 36px 0 12px;
+      position: relative;
+    }
+    .content h4 {
+      font-size: 13px;
+      font-weight: 600;
+      margin: 24px 0 8px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .content > p,
+    .content > ul,
+    .content > ol,
+    .content > blockquote { max-width: 75ch; }
+    .content p { margin: 0 0 16px; text-wrap: pretty; overflow-wrap: anywhere; }
+    .content a { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--accent-border); }
+    .content ul, .content ol { padding-left: 24px; margin: 0 0 16px; }
+    .content li { margin: 4px 0; }
+    .content strong { color: var(--text); font-weight: 600; }
+    .content em { color: var(--text-muted); }
+    .content hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+
+    /* Anchor links injected by JS on h2/h3 with id */
+    .anchor {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 24px; height: 24px;
+      margin-left: 6px;
+      color: var(--text-subtle);
+      opacity: 0;
+      transform: translateY(-1px);
+      transition: opacity 0.15s, color 0.15s;
+      border-bottom: none !important;
+      border-radius: var(--radius-sm);
+    }
+    .anchor .icon { width: 14px; height: 14px; stroke-width: 2; }
+
+    /* Images */
+    .content img {
+      max-width: 100%;
+      height: auto;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      margin: 20px 0;
+      display: block;
+    }
+    .content figure { margin: 20px 0; }
+    .content figure img { margin: 0; }
+    .content figcaption {
+      font-size: 13px;
+      color: var(--text-subtle);
+      margin-top: 8px;
+      text-align: center;
+    }
+
+    /* Task lists (- [ ] / - [x]) */
+    .content .task-list-item { list-style: none; margin-left: -22px; }
+    .content .task-list-item-checkbox {
+      margin-right: 8px;
+      vertical-align: -2px;
+      accent-color: var(--accent);
+    }
+
+    /* Footnotes */
+    .content .footnote-ref a,
+    .content sup a {
+      font-size: 0.75em;
+      vertical-align: super;
+      border-bottom: none;
+      padding: 0 2px;
+    }
+    .content .footnotes {
+      margin-top: 56px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    /* ============================================================
+       CODE
+       ============================================================ */
+    .content code {
+      font-family: var(--font-mono);
+      background: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.88em;
+      color: var(--code-text);
+      border: 1px solid var(--border);
+      overflow-wrap: anywhere;
+    }
+    .content pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      overflow-x: auto;
+      font-size: 13.5px;
+      line-height: 1.6;
+      margin: 16px 0;
+      position: relative;
+    }
+    .content pre code {
+      background: none; padding: 0; border: none;
+      color: var(--code-text);
+      font-size: inherit;
+    }
+    .copy-btn {
+      position: absolute;
+      top: 8px; right: 8px;
+      width: 32px; height: 32px;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      color: var(--text-subtle);
+      opacity: 0;
+      transition: opacity 0.15s, color 0.15s, border-color 0.15s;
+      padding: 0;
+    }
+    .copy-btn .icon { width: 14px; height: 14px; stroke-width: 2; }
+    .copy-btn.copied { color: var(--success); border-color: var(--success-border); opacity: 1; }
+
+    /* ============================================================
+       TIMELINE / STEPS
+       ============================================================ */
+    .timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin: 24px 0;
+      position: relative;
+    }
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 19px;
+      top: 20px;
+      bottom: 20px;
+      width: 2px;
+      background: linear-gradient(180deg, var(--accent-border), var(--border));
+    }
+    .step {
+      display: grid;
+      grid-template-columns: 40px 1fr;
+      gap: 16px;
+      align-items: start;
+      padding: 16px 4px;
+      position: relative;
+      border-radius: var(--radius);
+      transition: background-color 0.15s;
+    }
+    .step-num {
+      width: 40px; height: 40px;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: var(--surface);
+      border: 2px solid var(--accent);
+      color: var(--accent);
+      border-radius: 50%;
+      font-weight: 600;
+      font-size: 14px;
+      flex-shrink: 0;
+      box-shadow: var(--shadow-sm);
+      position: relative;
+      z-index: 1;
+      transition: background-color 0.15s, color 0.15s, transform 0.15s;
+    }
+    .step.done .step-num { background: var(--accent); color: #fff; }
+    .step-body { padding-top: 6px; min-width: 0; }
+    .step-body h3 {
+      margin: 0 0 6px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .step-body p { margin: 0 0 8px; color: var(--text-muted); font-size: 14.5px; max-width: 75ch; }
+    .step-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: 11.5px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    /* ============================================================
+       CALLOUTS
+       ============================================================ */
+    .callout {
+      display: grid;
+      grid-template-columns: 24px 1fr;
+      gap: 14px;
+      padding: 14px 18px;
+      border-radius: var(--radius);
+      border: 1px solid;
+      margin: 20px 0;
+      font-size: 14.5px;
+      line-height: 1.6;
+      max-width: 75ch;
+    }
+    .callout-icon { width: 20px; height: 20px; margin-top: 2px; stroke-width: 2; }
+    .callout-body { min-width: 0; }
+    .callout-title { font-weight: 600; margin: 0 0 4px; font-size: 14px; }
+    .callout-body p:last-child { margin-bottom: 0; }
+    .callout-body code { background: rgba(0,0,0,0.04); }
+    [data-theme="dark"] .callout-body code { background: rgba(255,255,255,0.06); }
+
+    .callout-info     { background: var(--info-soft);     border-color: var(--info-border);     color: var(--text); }
+    .callout-info     .callout-title, .callout-info     .callout-icon { color: var(--info); }
+    .callout-warn     { background: var(--warn-soft);     border-color: var(--warn-border);     color: var(--text); }
+    .callout-warn     .callout-title, .callout-warn     .callout-icon { color: var(--warn); }
+    .callout-danger   { background: var(--danger-soft);   border-color: var(--danger-border);   color: var(--text); }
+    .callout-danger   .callout-title, .callout-danger   .callout-icon { color: var(--danger); }
+    .callout-success  { background: var(--success-soft);  border-color: var(--success-border);  color: var(--text); }
+    .callout-success  .callout-title, .callout-success  .callout-icon { color: var(--success); }
+    .callout-decision { background: var(--decision-soft); border-color: var(--decision-border); color: var(--text); }
+    .callout-decision .callout-title, .callout-decision .callout-icon { color: var(--decision); }
+    .callout-tip      { background: var(--accent-soft);   border-color: var(--accent-border);   color: var(--text); }
+    .callout-tip      .callout-title, .callout-tip      .callout-icon { color: var(--accent-strong); }
+
+    /* ============================================================
+       KEY-POINT HIGHLIGHT
+       ============================================================ */
+    .highlight {
+      background: linear-gradient(135deg, var(--accent-soft), var(--surface-2));
+      border-left: 4px solid var(--accent);
+      padding: 18px 22px;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin: 24px 0;
+      font-size: 16px;
+      line-height: 1.65;
+      max-width: 75ch;
+    }
+    .highlight-label {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent-strong);
+      margin-bottom: 6px;
+    }
+
+    /* ============================================================
+       MERMAID
+       ============================================================ */
+    .diagram {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin: 24px 0;
+      box-shadow: var(--shadow-sm);
+      overflow-x: auto;
+    }
+    .diagram-caption {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px dashed var(--border);
+      font-size: 13px;
+      color: var(--text-subtle);
+      text-align: center;
+    }
+    .mermaid { text-align: center; min-height: 80px; }
+    .mermaid svg { max-width: 100%; height: auto; }
+    .mermaid:not([data-processed]) {
+      opacity: 0.4;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-subtle);
+      white-space: pre-wrap;
+      text-align: left;
+    }
+
+    /* ============================================================
+       PROS / CONS
+       ============================================================ */
+    .proscons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 24px 0;
+    }
+    .proscons-col {
+      padding: 16px 20px;
+      border-radius: var(--radius);
+      border: 1px solid;
+    }
+    .proscons-col h4 {
+      margin: 0 0 12px;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .proscons-col ul { margin: 0; padding-left: 18px; }
+    .proscons-col li { margin: 6px 0; }
+    .pros { background: var(--success-soft); border-color: var(--success-border); }
+    .pros h4 { color: var(--success); }
+    .cons { background: var(--danger-soft); border-color: var(--danger-border); }
+    .cons h4 { color: var(--danger); }
+
+    /* ============================================================
+       COMPARISON CARDS
+       ============================================================ */
+    .compare {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin: 24px 0;
+    }
+    .compare-card {
+      padding: 18px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      transition: border-color 0.18s, box-shadow 0.18s;
+      position: relative;
+    }
+    .compare-card.recommended { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .compare-card.recommended::before {
+      content: var(--rec-label, "★ Recommended");
+      position: absolute; top: -10px; right: 14px;
+      background: var(--accent); color: #fff;
+      padding: 2px 10px; border-radius: 999px;
+      font-size: 11px; font-weight: 600;
+    }
+    .compare-card h4 { margin: 0 0 8px; font-size: 15px; color: var(--text); text-transform: none; letter-spacing: normal; }
+    .compare-card p { margin: 0; color: var(--text-muted); font-size: 14px; }
+
+    /* ============================================================
+       COLLAPSIBLE
+       ============================================================ */
+    details.collapsible {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin: 16px 0;
+      background: var(--surface);
+      overflow: hidden;
+    }
+    details.collapsible[open] { box-shadow: var(--shadow-sm); }
+    details.collapsible > summary {
+      cursor: pointer;
+      padding: 14px 18px;
+      font-weight: 500;
+      color: var(--text);
+      list-style: none;
+      display: flex; align-items: center; gap: 10px;
+      user-select: none;
+      transition: background 0.15s;
+      min-height: 44px;
+    }
+    details.collapsible > summary::-webkit-details-marker { display: none; }
+    details.collapsible > summary::before {
+      content: "›";
+      display: inline-block;
+      transition: transform 0.18s;
+      color: var(--accent);
+      font-size: 18px;
+      font-weight: 700;
+    }
+    details.collapsible[open] > summary::before { transform: rotate(90deg); }
+    .collapsible-body { padding: 4px 18px 18px; border-top: 1px solid var(--border); }
+    .collapsible-body > *:first-child { margin-top: 12px; }
+
+    /* ============================================================
+       TABLES (wrapped via .table-wrap or naturally responsive)
+       ============================================================ */
+    .table-wrap {
+      overflow-x: auto;
+      margin: 20px 0;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      max-width: 100%;
+    }
+    .content table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      background: var(--surface);
+      margin: 0;
+    }
+    /* Standalone tables (not inside .table-wrap) keep visual border */
+    .content > table {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin: 20px 0;
+      display: block;
+      overflow-x: auto;
+    }
+    .content th {
+      background: var(--surface-2);
+      color: var(--text);
+      font-weight: 600;
+      text-align: left;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+    .content td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-muted);
+      vertical-align: top;
+    }
+    .content tr:last-child td { border-bottom: none; }
+
+    /* ============================================================
+       BLOCKQUOTE
+       ============================================================ */
+    .content blockquote {
+      margin: 20px 0;
+      padding: 4px 20px;
+      border-left: 3px solid var(--accent-border);
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    /* ============================================================
+       FOOTER
+       ============================================================ */
+    .doc-footer {
+      margin-top: 80px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--text-subtle);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .doc-footer a { color: var(--accent); text-decoration: none; }
+
+    /* ============================================================
+       FOCUS-VISIBLE (a11y)
+       ============================================================ */
+    *:focus { outline: none; }
+    *:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+      border-radius: var(--radius-sm);
+    }
+    .toc-nav a:focus-visible { outline-offset: -2px; }
+    .icon-btn:focus-visible { outline-offset: 2px; }
+    .anchor:focus-visible { opacity: 1; outline-offset: 2px; }
+    details.collapsible > summary:focus-visible { outline-offset: -2px; }
+
+    /* ============================================================
+       HOVER (only on hover-capable devices to avoid sticky-tap on mobile)
+       ============================================================ */
+    @media (hover: hover) {
+      .icon-btn:hover { color: var(--accent); border-color: var(--accent-border); background: var(--accent-soft); }
+      .toc-nav a:hover { color: var(--accent); background: var(--accent-soft); }
+      .content a:hover { color: var(--accent-hover); border-bottom-color: var(--accent); }
+      .compare-card:hover { border-color: var(--accent-border); box-shadow: var(--shadow); }
+      .compare-card.recommended:hover { border-color: var(--accent); }
+      .content tr:hover td { background: var(--surface-2); }
+      details.collapsible > summary:hover { background: var(--surface-2); }
+      .step:hover { background: var(--surface-2); }
+      .step:hover .step-num { transform: scale(1.05); }
+      .anchor:hover { color: var(--accent); }
+      .content h2:hover .anchor,
+      .content h3:hover .anchor { opacity: 1; }
+      .copy-btn:hover { color: var(--accent); border-color: var(--accent-border); }
+      .content pre:hover .copy-btn { opacity: 1; }
+    }
+    /* On touch devices, copy-btn is always visible at low opacity */
+    @media (hover: none) {
+      .copy-btn { opacity: 0.6; }
+      .anchor { opacity: 0.4; }
+    }
+
+    /* ============================================================
+       MOBILE (≤900px) — TOC becomes off-canvas drawer
+       ============================================================ */
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        padding: 20px 16px 80px;
+      }
+      .topbar-inner { padding: 8px 12px; }
+      .doc-header { margin-bottom: 28px; padding-bottom: 20px; }
+
+      .toc-mobile-trigger { display: inline-flex !important; }
+
+      .toc {
+        position: fixed;
+        top: 0; left: 0;
+        width: min(300px, 82vw);
+        height: 100dvh;
+        max-height: 100dvh;
+        background: var(--surface);
+        z-index: var(--z-drawer);
+        padding: 16px 8px 24px 16px;
+        box-shadow: var(--shadow-lg);
+        transform: translateX(-105%);
+        transition: transform 0.25s ease;
+      }
+      .toc-head { padding: 4px 4px 12px 8px; }
+      .toc-close {
+        display: inline-flex !important;
+        width: 36px; height: 36px;
+        align-items: center; justify-content: center;
+        background: transparent;
+        border: 1px solid transparent;
+        border-radius: var(--radius-sm);
+        color: var(--text-muted);
+        cursor: pointer;
+        padding: 0;
+      }
+      .toc-close .icon { width: 18px; height: 18px; stroke-width: 2; }
+      body.toc-open .toc { transform: translateX(0); }
+      body.toc-open .toc-backdrop {
+        display: block;
+        opacity: 1;
+      }
+      .toc-backdrop {
+        display: block;
+        opacity: 0;
+        pointer-events: none;
+      }
+      body.toc-open .toc-backdrop { pointer-events: auto; }
+      body.toc-open { overflow: hidden; }
+    }
+    @media (min-width: 901px) {
+      .toc-mobile-trigger { display: none !important; }
+    }
+
+    /* ============================================================
+       REDUCED MOTION (a11y)
+       ============================================================ */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+      html { scroll-behavior: auto; }
+      .brand-dot { animation: none; box-shadow: 0 0 0 4px var(--accent-soft); }
+    }
+
+    /* ============================================================
+       PRINT
+       ============================================================ */
+    @media print {
+      .topbar, .toc, .toc-backdrop, .icon-btn, .copy-btn, .anchor, .scroll-progress { display: none !important; }
+      .layout { grid-template-columns: 1fr; padding: 0; max-width: 100%; }
+      body { background: #fff; color: #000; }
+      a { color: #000; }
+      .content pre, .callout, .compare-card, .step, .diagram { break-inside: avoid; }
+      .doc-footer { break-before: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Skip link for keyboard users -->
+  <a href="#main" class="skip-link">Skip to content</a>
+
+  <!-- Scroll progress -->
+  <div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
+
+  <!-- SVG icon sprite (Lucide-style) -->
+  <svg class="icon-sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="i-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></symbol>
+    <symbol id="i-warn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+    <symbol id="i-danger" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></symbol>
+    <symbol id="i-success" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></symbol>
+    <symbol id="i-decision" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></symbol>
+    <symbol id="i-tip" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M15.09 14a5 5 0 1 0-6.18 0 4 4 0 0 1 1.59 2h2.99a4 4 0 0 1 1.6-2Z"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+    <symbol id="i-printer" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></symbol>
+  </svg>
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <button class="icon-btn toc-mobile-trigger" id="toc-toggle" onclick="openToc()" aria-label="Contents" title="Contents">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-menu"/></svg>
+        </button>
+        <span class="brand-dot" aria-hidden="true"></span>
+        <span>DOC</span>
+      </div>
+      <div class="topbar-actions">
+        <button class="icon-btn" onclick="window.print()" title="Print / Save PDF" aria-label="Print / Save PDF">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-printer"/></svg>
+        </button>
+        <button class="icon-btn" id="theme-toggle" onclick="toggleTheme()" title="Toggle theme" aria-label="Toggle theme">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use id="theme-icon-use" href="#i-moon"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- TOC drawer backdrop (mobile) -->
+  <div class="toc-backdrop" onclick="closeToc()" aria-hidden="true"></div>
+
+  <div class="layout">
+    <aside class="toc" id="toc" aria-label="Contents">
+      <div class="toc-head">
+        <p class="toc-title">Contents</p>
+        <button class="toc-close" onclick="closeToc()" aria-label="Close">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-x"/></svg>
+        </button>
+      </div>
+      <nav class="toc-nav" id="toc-nav">
+        <a href="#status-legend" class="lvl-2">Status legend</a>
+<a href="#phase-0-decisions-all-closed-2026-05-15-v210" class="lvl-2">Phase 0 decisions — all closed (2026-05-15, v2.1.0)</a>
+<a href="#stretch-non-phase-0-decisions" class="lvl-2">Stretch / non-Phase-0 decisions</a>
+<a href="#decision-template" class="lvl-2">Decision template</a>
+<a href="#closed-decisions-full-record" class="lvl-2">Closed decisions (full record)</a>
+<a href="#dec-001-odoo-version-edition-decided-2026-05-15-amended-2026-05-15-v210" class="lvl-3">DEC-001: Odoo version + edition — Decided 2026-05-15 (amended 2026-05-15, v2.1.0)</a>
+<a href="#dec-002-installed-odoo-modules-decided-2026-05-15-v210" class="lvl-3">DEC-002: Installed Odoo modules — Decided 2026-05-15 (v2.1.0)</a>
+<a href="#dec-003-custom-odoo-module-decided-2026-05-15-flipped-2026-05-15-v210" class="lvl-3">DEC-003: Custom Odoo module — Decided 2026-05-15 (flipped 2026-05-15, v2.1.0)</a>
+<a href="#dec-004-gps-storage-target-decided-2026-05-15-flipped-2026-05-15-v210" class="lvl-3">DEC-004: GPS storage target — Decided 2026-05-15 (flipped 2026-05-15, v2.1.0)</a>
+<a href="#dec-005-sms-provider-decided-2026-05-15" class="lvl-3">DEC-005: SMS provider — Decided 2026-05-15</a>
+<a href="#dec-006-phone-to-employee-mapping-decided-2026-05-15" class="lvl-3">DEC-006: Phone-to-employee mapping — Decided 2026-05-15</a>
+<a href="#dec-007-object-storage-decided-2026-05-15-amended-2026-05-15-v210" class="lvl-3">DEC-007: Object storage — Decided 2026-05-15 (amended 2026-05-15, v2.1.0)</a>
+<a href="#dec-008-odoo-sla-scaling-dr-decided-2026-05-15-v210" class="lvl-3">DEC-008: Odoo SLA / scaling / DR — Decided 2026-05-15 (v2.1.0)</a>
+<a href="#dec-009-container-orchestration-target-decided-2026-05-15-v210" class="lvl-3">DEC-009: Container orchestration target — Decided 2026-05-15 (v2.1.0)</a>
+<a href="#dec-011-drift-vs-sqflite-decided-2026-05-13" class="lvl-3">DEC-011: Drift vs sqflite — Decided 2026-05-13</a>
+<a href="#dec-014-gps-retention-window-decided-2026-05-15-v210" class="lvl-3">DEC-014: GPS retention window — Decided 2026-05-15 (v2.1.0)</a>
+<a href="#dec-015-xngynapp-field-prefix-decided-2026-05-15-v210" class="lvl-3">DEC-015: x_ngynapp_* field prefix — Decided 2026-05-15 (v2.1.0)</a>
+<a href="#how-this-connects" class="lvl-2">How this connects</a>
+      </nav>
+    </aside>
+
+    <main class="content" id="main">
+      <header class="doc-header">
+        <span class="doc-eyebrow">NOTES</span>
+        <h1 class="doc-title">Decision Log (Open + Closed)</h1>
+        <p class="doc-subtitle">This is the running ledger of significant decisions: the 9 Phase 0 decisions plus any decision raised during build that does not warrant a full ADR.</p>
+        <div class="doc-meta">
+          <span class="doc-meta-item">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-file"/></svg>
+            decision-log.md
+          </span>
+          <span class="doc-meta-item">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-calendar"/></svg>
+            Updated 2026-05-15
+          </span>
+          <span class="doc-meta-item">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-clock"/></svg>
+            ~8 min read
+          </span>
+        </div>
+      </header>
+
+      <!-- CONTENT_START -->
+<p><strong>Status:</strong> Active
+<strong>Owner:</strong> Project Manager
+<strong>Last updated:</strong> 2026-05-15 (blueprint v2.1.0)</p>
+<p>This is the running ledger of significant decisions: the 9 Phase 0 decisions plus any decision raised during build that does not warrant a full ADR.</p>
+<h2 id="status-legend">Status legend</h2>
+<ul>
+<li><code>Open</code> — needs answer, blocking listed scope</li>
+<li><code>In Discussion</code> — owner working with stakeholders</li>
+<li><code>Decided</code> — answered; if architectural, see linked ADR</li>
+<li><code>Provisional</code> — answered with default assumption pending sponsor confirmation; safe to start work</li>
+<li><code>Deferred</code> — answer postponed beyond MVP</li>
+</ul>
+<h2 id="phase-0-decisions-all-closed-2026-05-15-v210">Phase 0 decisions — all closed (2026-05-15, v2.1.0)</h2>
+<p>All nine Phase 0 decisions are now <code>Decided</code>. Sponsor reconfirmation on 2026-05-15 flipped four <code>Provisional</code> items and amended two <code>Decided</code> items to reflect the Odoo Online + multi-version contract.</p>
+<div class="table-wrap"><table><thead><tr><th>ID</th><th>Topic</th><th>Status</th><th>Source</th><th>Linked ADR</th></tr></thead><tbody><tr><td><strong>DEC-001</strong></td><td>Odoo version + edition</td><td><strong>Decided (amended)</strong></td><td>Odoo 19 EE for testing; RPC contract for production portability across versions and editions</td><td><a href="../adr/ADR-011-odoo-19-enterprise.html">ADR-011</a></td></tr>
+<tr><td><strong>DEC-002</strong></td><td>Installed Odoo modules</td><td><strong>Decided</strong></td><td>Capability detection at runtime; only modules in use need to be installed; hard requirements: <code>hr</code>, <code>project</code>, <code>contacts</code>, <code>x_ngynapp_*</code> field set</td><td><a href="../adr/ADR-015-no-custom-module-rpc-adapter.html">ADR-015</a></td></tr>
+<tr><td><strong>DEC-003</strong></td><td>Custom Odoo module <code>field_mobile_sync</code></td><td><strong>Decided (flipped)</strong></td><td><strong>No custom module.</strong> Solution must run on Odoo Online; capabilities relocated to FastAPI + <code>x_ngynapp_*</code> fields</td><td><a href="../adr/ADR-015-no-custom-module-rpc-adapter.html">ADR-015</a></td></tr>
+<tr><td><strong>DEC-004</strong></td><td>GPS storage target</td><td><strong>Decided (flipped)</strong></td><td>FastAPI Postgres for full history; Odoo holds summary <code>x_ngynapp_gps_*</code> only</td><td><a href="../adr/ADR-016-gps-in-fastapi-postgres.html">ADR-016</a></td></tr>
+<tr><td><strong>DEC-005</strong></td><td>SMS provider</td><td><strong>Decided</strong></td><td>Twilio Verify only for MVP; account + key issued; fallback re-evaluated post-pilot</td><td><a href="../adr/ADR-010-twilio-sms-only.html">ADR-010</a></td></tr>
+<tr><td><strong>DEC-006</strong></td><td>Phone-to-<code>hr.employee</code> mapping</td><td><strong>Decided</strong></td><td><code>hr.employee.work_phone</code> first, fallback <code>private_phone</code>, then <code>mobile_phone</code>; normalised to E.164 (+84…); selected source recorded in <code>x_ngynapp_phone_source</code></td><td><a href="../adr/ADR-015-no-custom-module-rpc-adapter.html">ADR-015</a>, <code>data/odoo-mapping.md</code></td></tr>
+<tr><td><strong>DEC-007</strong></td><td>Object storage provider</td><td><strong>Decided (amended)</strong></td><td>DigitalOcean Spaces in <code>sgp1</code>; S3-compatible API for portability</td><td><a href="../adr/ADR-012-aws-s3-object-storage.html">ADR-012</a></td></tr>
+<tr><td><strong>DEC-008</strong></td><td>Odoo SLA / scaling / DR</td><td><strong>Decided</strong></td><td>Production tenants delegate SLA to their Odoo provider (Odoo Online SLA, Odoo.sh SLA, or self-host operator). FastAPI side carries its own SLA in <code>architecture/non-functional-requirements.md</code>. DR for our side: Postgres PITR + Spaces versioning</td><td>— (recorded in <code>runbooks/odoo-dr-upgrade.md</code>)</td></tr>
+<tr><td><strong>DEC-009</strong></td><td>Container orchestration target</td><td><strong>Decided</strong></td><td>DigitalOcean Droplets running Docker Compose for testing and pilot; managed Postgres + managed Redis on DO; Spaces for storage. Production scales by Droplet size first, DOKS only when concurrent worker count exceeds threshold</td><td>— (recorded in <code>architecture/deployment.md</code>)</td></tr></tbody></table></div>
+<h2 id="stretch-non-phase-0-decisions">Stretch / non-Phase-0 decisions</h2>
+<div class="table-wrap"><table><thead><tr><th>ID</th><th>Topic</th><th>Owner</th><th>Status</th><th>Blocks</th><th>Target</th><th>Notes</th></tr></thead><tbody><tr><td><strong>DEC-010</strong></td><td>Whisper model bundling: ship inside app vs first-launch download</td><td>Mobile Lead</td><td>Open</td><td>S6</td><td>End of S5</td><td>Bundling +75 MB; download fails offline first launch. ADR-008 deferred this</td></tr>
+<tr><td><strong>DEC-011</strong></td><td>Drift vs sqflite for SQLite</td><td>Mobile Lead</td><td><strong>Decided</strong></td><td>—</td><td>2026-05-13</td><td>Drift adopted; see ADR-009</td></tr>
+<tr><td><strong>DEC-012</strong></td><td>Force update enforcement threshold</td><td>PO + EL</td><td>Open</td><td>S10</td><td>End of S9</td><td>Tied to release plan</td></tr>
+<tr><td><strong>DEC-013</strong></td><td>Crash reporter opt-in default (pilot vs prod)</td><td>Security Champion + PO</td><td>Open</td><td>S10</td><td>End of S9</td><td>Pilot opt-in; prod TBD</td></tr>
+<tr><td><strong>DEC-014</strong></td><td>GPS retention window in FastAPI Postgres</td><td>Backend Lead + Security</td><td><strong>Decided</strong></td><td>—</td><td>2026-05-15</td><td>180 days. Daily Celery purge job. Summary fields on Odoo never purged.</td></tr>
+<tr><td><strong>DEC-015</strong></td><td><code>x_ngynapp_*</code> field prefix</td><td>Backend Lead + Odoo Specialist</td><td><strong>Decided</strong></td><td>—</td><td>2026-05-15</td><td>Reserved program prefix. See <code>data/odoo-x-fields-spec.md</code>.</td></tr></tbody></table></div>
+<h2 id="decision-template">Decision template</h2>
+<p>When a decision is made:</p>
+<pre><code class="language-markdown">### DEC-NNN: &lt;Title&gt; — Decided YYYY-MM-DD
+
+**Decision:** &lt;one-line decision&gt;
+**Rationale:** &lt;why&gt;
+**Implications:** &lt;what changes&gt;
+**Linked ADR:** ADR-XXX (if architectural)
+**Approved by:** &lt;names per RACI&gt;</code></pre>
+<h2 id="closed-decisions-full-record">Closed decisions (full record)</h2>
+<h3 id="dec-001-odoo-version-edition-decided-2026-05-15-amended-2026-05-15-v210">DEC-001: Odoo version + edition — Decided 2026-05-15 (amended 2026-05-15, v2.1.0)</h3>
+<p><strong>Decision:</strong> Odoo 19 Enterprise is the test target. Production contract is RPC-only against any reasonably current Odoo (17+) on Community, Enterprise, or Online. The integration never branches on edition strings; it branches on observed module presence.
+<strong>Rationale:</strong> Sponsor reconfirmed the production solution must run on Odoo Online and any Odoo version. Pinning to one edition would exclude SaaS customers and force premature upgrades.
+<strong>Implications:</strong> RPC adapter (ADR-015) replaces fixed-contract integration. CI primary against Odoo 19 EE; weekly smoke matrix includes Odoo 17 Community to validate fallback. Path A / Path B model removed from <code>engineering/odoo-module-mapping.md</code>.
+<strong>Linked ADR:</strong> ADR-011 (amended), ADR-015.
+<strong>Approved by:</strong> Sponsor, Engineering Lead, Odoo Specialist.</p>
+<h3 id="dec-002-installed-odoo-modules-decided-2026-05-15-v210">DEC-002: Installed Odoo modules — Decided 2026-05-15 (v2.1.0)</h3>
+<p><strong>Decision:</strong> Hard requirements are <code>hr</code>, <code>project</code>, <code>contacts</code>, plus the <code>x_ngynapp_*</code> field set per <code>data/odoo-x-fields-spec.md</code>. All other modules (<code>industry_fsm</code>, <code>planning</code>, <code>hr_attendance</code>, <code>hr_timesheet</code>, <code>survey</code>, <code>quality</code>, <code>maintenance</code>, <code>documents</code>) are soft capabilities — install if you want them, the adapter detects and degrades gracefully when absent.
+<strong>Rationale:</strong> Sponsor reconfirmed flexibility: any module can be installed if needed; the system must not require a specific set. Capability detection is the only durable contract across versions and editions.
+<strong>Implications:</strong> FastAPI startup probe enumerates modules and emits a <code>ProbeReport</code>. Service refuses writes if hard requirements are missing. Admin alert fires with remediation steps.
+<strong>Linked ADR:</strong> ADR-015.
+<strong>Approved by:</strong> Sponsor, Engineering Lead, Backend Lead, Odoo Specialist.</p>
+<h3 id="dec-003-custom-odoo-module-decided-2026-05-15-flipped-2026-05-15-v210">DEC-003: Custom Odoo module — Decided 2026-05-15 (flipped 2026-05-15, v2.1.0)</h3>
+<p><strong>Decision:</strong> <strong>No custom Odoo module.</strong> All capabilities formerly delivered by <code>field_mobile_sync</code> are relocated:</p>
+<ul>
+<li>Idempotency: Redis SETNX in FastAPI + <code>x_ngynapp_client_id</code> Char on Odoo target records.</li>
+<li>Sync acknowledgement: read-after-write RPC; <code>SyncAck</code> carries Odoo <code>id</code> + <code>write_date</code>.</li>
+<li>GPS history: FastAPI Postgres <code>gps_pings</code> table (ADR-016); Odoo gets summary fields only.</li>
+<li>Sync state: FastAPI Postgres authoritative; mirror on <code>x_ngynapp_sync_state</code>.</li>
+<li>Audit: FastAPI structured logs + Postgres <code>audit_event</code> table.</li>
+</ul>
+<p><strong>Rationale:</strong> Sponsor reconfirmed solution must run on Odoo Online. Online prohibits custom Python modules. The capabilities are still required; they move to where we control the runtime.
+<strong>Implications:</strong> ADR-014 superseded by ADR-015. The <code>field-mobile-sync</code> repo + Odoo CI pipeline is cancelled. EPIC-08 stories US-ODOO-001 (module skeleton) is rewritten to &quot;RPC adapter scaffold + probe&quot;. Studio setup is the customer-side prerequisite.
+<strong>Linked ADR:</strong> ADR-015 (supersedes ADR-014).
+<strong>Approved by:</strong> Sponsor, Backend Lead, Odoo Specialist, Engineering Lead.</p>
+<h3 id="dec-004-gps-storage-target-decided-2026-05-15-flipped-2026-05-15-v210">DEC-004: GPS storage target — Decided 2026-05-15 (flipped 2026-05-15, v2.1.0)</h3>
+<p><strong>Decision:</strong> GPS history lives in FastAPI Postgres (<code>gps_pings</code> table). Odoo retains only denormalised summary fields <code>x_ngynapp_gps_*</code> on <code>project.task</code> (or <code>fsm.task</code>).
+<strong>Rationale:</strong> Custom Odoo model is no longer permitted (DEC-003). High-volume inserts and ad-hoc map queries fit better in Postgres than in Odoo&#39;s shared DB.
+<strong>Implications:</strong> ADR-013 superseded by ADR-016. Map overlay surfaces via FastAPI dashboard linked from Odoo. Retention enforced in Postgres (180-day Celery purge — DEC-014). TC-GPS-001..004 rewritten.
+<strong>Linked ADR:</strong> ADR-016 (supersedes ADR-013).
+<strong>Approved by:</strong> Sponsor, Backend Lead, Engineering Lead, Odoo Specialist.</p>
+<h3 id="dec-005-sms-provider-decided-2026-05-15">DEC-005: SMS provider — Decided 2026-05-15</h3>
+<p><strong>Decision:</strong> Twilio Verify only for MVP. Twilio account + API key issued and stored in environment vault. Fallback evaluated post-pilot via <code>DEC-005-FOLLOWUP</code>.
+<strong>Rationale:</strong> Single provider; mature API; pilot scale does not justify dual-routing engineering cost. Sponsor confirmed credentials available now.
+<strong>Implications:</strong> Auth flow (ADR-002) unchanged; fallback abstraction can be added later without breaking the OTP API contract.
+<strong>Linked ADR:</strong> ADR-010.
+<strong>Approved by:</strong> Sponsor, Backend Lead, Engineering Lead.</p>
+<h3 id="dec-006-phone-to-employee-mapping-decided-2026-05-15">DEC-006: Phone-to-employee mapping — Decided 2026-05-15</h3>
+<p><strong>Decision:</strong> Resolve in order: <code>hr.employee.work_phone</code> first, then <code>hr.employee.private_phone</code>, then <code>hr.employee.mobile_phone</code>. Normalise the chosen value to E.164 (<code>+84…</code>) and store in <code>x_ngynapp_normalised_phone</code>; record which field supplied it in <code>x_ngynapp_phone_source</code>.
+<strong>Rationale:</strong> Sponsor confirmed <code>work_phone</code> is the primary expectation, with <code>private_phone</code> as the realistic fallback for field workers without a corporate line.
+<strong>Implications:</strong> A pre-pilot data-cleanup script populates <code>x_ngynapp_normalised_phone</code> for all active employees. OTP lookup queries this single field; no per-tenant branching. If a phone changes in Odoo, a Celery sync detects and updates the normalised mirror.
+<strong>Linked ADR:</strong> ADR-015.
+<strong>Approved by:</strong> Sponsor, Backend Lead, Odoo Specialist.</p>
+<h3 id="dec-007-object-storage-decided-2026-05-15-amended-2026-05-15-v210">DEC-007: Object storage — Decided 2026-05-15 (amended 2026-05-15, v2.1.0)</h3>
+<p><strong>Decision:</strong> DigitalOcean Spaces in <code>sgp1</code>. SSE at rest (DO-managed AES-256), TLS 1.2+ in transit, public-access blocked, lifecycle archive prefix at 365 days. S3-compatible endpoint allows future migration to AWS S3 or Cloudflare R2 with config-only changes.
+<strong>Rationale:</strong> Compute host is DO (DEC-009); single-vendor billing; flat-rate pricing fits pilot scale. S3-compatibility removes lock-in risk.
+<strong>Implications:</strong> Bucket naming <code>field-mobile-{env}-evidence-sgp1</code>. Access keys scoped per environment, rotated 90 days. SDK config: <code>boto3</code> with <code>endpoint_url=https://sgp1.digitaloceanspaces.com</code>.
+<strong>Linked ADR:</strong> ADR-012 (amended).
+<strong>Approved by:</strong> Sponsor, DevOps, Backend Lead.</p>
+<h3 id="dec-008-odoo-sla-scaling-dr-decided-2026-05-15-v210">DEC-008: Odoo SLA / scaling / DR — Decided 2026-05-15 (v2.1.0)</h3>
+<p><strong>Decision:</strong> Production tenants delegate Odoo SLA to their Odoo provider (Odoo Online SLA, Odoo.sh SLA, or the customer&#39;s self-host operator). Our integration layer carries its own SLA defined in <code>architecture/non-functional-requirements.md</code>. Disaster recovery for our side: Postgres point-in-time recovery (managed DO Postgres) + DO Spaces versioning + warm-standby Droplet.
+<strong>Rationale:</strong> Sponsor reconfirmed reliance on Odoo provider SLA; our team does not run Odoo. DO managed services provide the durability primitives we need without bespoke ops.
+<strong>Implications:</strong> RTO 2h / RPO 15min targets apply to FastAPI + Postgres + Spaces. Odoo downtime is treated as upstream incident — mobile sync queue holds writes; on Odoo recovery, drains via standard backoff. <code>runbooks/odoo-dr-upgrade.md</code> updated to reference the provider SLA links.
+<strong>Linked ADR:</strong> —.
+<strong>Approved by:</strong> Sponsor, DevOps, Engineering Lead.</p>
+<h3 id="dec-009-container-orchestration-target-decided-2026-05-15-v210">DEC-009: Container orchestration target — Decided 2026-05-15 (v2.1.0)</h3>
+<p><strong>Decision:</strong> DigitalOcean Droplets running Docker Compose for testing and pilot. Managed Postgres and managed Redis on DO. DO Spaces for object storage. Production scales by Droplet vertical size first (4GB → 8GB → 16GB); migration to DOKS (DigitalOcean Kubernetes) only when concurrent worker count exceeds threshold defined in <code>backlog/capacity-plan.md</code>.
+<strong>Rationale:</strong> Same vendor as storage (DEC-007); predictable monthly cost; lowest ops complexity for testing and pilot scale; clean upgrade path.
+<strong>Implications:</strong> <code>architecture/deployment.md</code> updated with DO topology. Single-region deployment in <code>sgp1</code>. Provisioning via Terraform module <code>tf-do-stack</code>. Estimated baseline cost ~$54/month for pilot (Droplet 4GB + managed Postgres + managed Redis).
+<strong>Linked ADR:</strong> —.
+<strong>Approved by:</strong> Sponsor, DevOps, Engineering Lead.</p>
+<h3 id="dec-011-drift-vs-sqflite-decided-2026-05-13">DEC-011: Drift vs sqflite — Decided 2026-05-13</h3>
+<p><strong>Decision:</strong> Adopt Drift 2.18+ for the mobile SQLite layer; sqflite forbidden in business code.
+<strong>Rationale:</strong> Compile-time SQL, generated DAOs, mature migration tooling, clean SQLCipher integration.
+<strong>Implications:</strong> <code>build_runner</code> lands in CI; generated <code>*.g.dart</code> checked in; lint forbids direct <code>sqflite</code> imports outside test fixtures.
+<strong>Linked ADR:</strong> ADR-009.
+<strong>Approved by:</strong> Mobile Lead, Engineering Lead.</p>
+<h3 id="dec-014-gps-retention-window-decided-2026-05-15-v210">DEC-014: GPS retention window — Decided 2026-05-15 (v2.1.0)</h3>
+<p><strong>Decision:</strong> GPS pings in FastAPI Postgres are retained 180 days, purged daily by Celery beat job <code>tasks.gps_retention.purge_old_pings</code> at 02:00 UTC. Summary fields on Odoo are never purged.
+<strong>Rationale:</strong> 180 days covers typical labour-dispute and audit windows for the pilot population without unbounded growth.
+<strong>Implications:</strong> Retention configurable via <code>GPS_RETENTION_DAYS</code> env; longer windows require disk capacity review.
+<strong>Linked ADR:</strong> ADR-016.
+<strong>Approved by:</strong> Backend Lead, Security Champion.</p>
+<h3 id="dec-015-xngynapp-field-prefix-decided-2026-05-15-v210">DEC-015: <code>x_ngynapp_*</code> field prefix — Decided 2026-05-15 (v2.1.0)</h3>
+<p><strong>Decision:</strong> All Odoo customisations introduced by this program live under the <code>x_ngynapp_</code> prefix. The prefix is reserved; no other namespace is used.
+<strong>Rationale:</strong> Single recognisable namespace simplifies probing, auditing, and future cleanup. Shorter than full product name; long enough to avoid accidental collision.
+<strong>Implications:</strong> Documented in <code>data/odoo-x-fields-spec.md</code>. Probe filters on this prefix. CI checks new specs do not leak other prefixes.
+<strong>Linked ADR:</strong> ADR-015.
+<strong>Approved by:</strong> Backend Lead, Odoo Specialist.</p>
+<h2 id="how-this-connects">How this connects</h2>
+<ul>
+<li>Each story&#39;s &quot;Open Questions&quot; field references <code>DEC-NNN</code>. With Phase 0 fully closed in v2.1.0, all P0 stories are eligible to start.</li>
+<li>Sprint plans previously listed DEC-NNN dependencies; those gates are now satisfied.</li>
+<li>Future flips (very unlikely) will be recorded as amendments here and referenced from <code>CHANGELOG.md</code>.</li>
+</ul>
+
+<!-- CONTENT_END -->
+
+      <footer class="doc-footer">
+        <span>Generated by <a href="#">md2html</a></span>
+        <span>Source: decision-log.md</span>
+      </footer>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+  <script>
+    // ---------- Theme ----------
+    const STORAGE_KEY = "md2html-theme";
+    function currentTheme() { return document.documentElement.dataset.theme || "light"; }
+    function applyThemeIcon() {
+      const use = document.getElementById("theme-icon-use");
+      if (use) use.setAttribute("href", currentTheme() === "dark" ? "#i-sun" : "#i-moon");
+    }
+    (function restoreTheme() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) document.documentElement.dataset.theme = saved;
+    })();
+
+    // ---------- Mermaid ----------
+    const diagramSources = new Map();
+    function initMermaid() {
+      const isDark = currentTheme() === "dark";
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: isDark ? "dark" : "default",
+        themeVariables: {
+          primaryColor: isDark ? "#3A2A22" : "#FBEEE6",
+          primaryTextColor: isDark ? "#F5F0E8" : "#1A1A1A",
+          primaryBorderColor: isDark ? "#E89572" : "#D97757",
+          lineColor: isDark ? "#9A938A" : "#6B6B66",
+          secondaryColor: isDark ? "#2A2520" : "#F5F5F0",
+          tertiaryColor: isDark ? "#221E1A" : "#FFFFFF",
+          fontFamily: "Inter, system-ui, sans-serif",
+        },
+      });
+    }
+    async function renderMermaid() {
+      initMermaid();
+      const els = document.querySelectorAll(".mermaid");
+      els.forEach(el => {
+        if (!diagramSources.has(el)) diagramSources.set(el, el.textContent.trim());
+        el.textContent = diagramSources.get(el);
+        el.removeAttribute("data-processed");
+      });
+      try { await mermaid.run({ nodes: els }); } catch (e) { console.error(e); }
+    }
+    function toggleTheme() {
+      const next = currentTheme() === "light" ? "dark" : "light";
+      document.documentElement.dataset.theme = next;
+      localStorage.setItem(STORAGE_KEY, next);
+      applyThemeIcon();
+      renderMermaid();
+    }
+
+    // ---------- TOC drawer (mobile) ----------
+    function openToc()  { document.body.classList.add("toc-open"); }
+    function closeToc() { document.body.classList.remove("toc-open"); }
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape" && document.body.classList.contains("toc-open")) closeToc();
+    });
+
+    // ---------- TOC scrollspy ----------
+    function setupTocSpy() {
+      const links = document.querySelectorAll("#toc-nav a[href^='#']");
+      if (!links.length) {
+        const toc = document.getElementById("toc");
+        if (toc) toc.style.display = "none";
+        return;
+      }
+      const map = new Map();
+      links.forEach(a => {
+        const id = a.getAttribute("href").slice(1);
+        const el = document.getElementById(id);
+        if (el) map.set(el, a);
+        a.addEventListener("click", () => {
+          if (window.matchMedia("(max-width: 900px)").matches) closeToc();
+        });
+      });
+      const obs = new IntersectionObserver((entries) => {
+        entries.forEach(en => {
+          const link = map.get(en.target);
+          if (!link) return;
+          if (en.isIntersecting) {
+            links.forEach(l => l.classList.remove("active"));
+            link.classList.add("active");
+          }
+        });
+      }, { rootMargin: "-80px 0px -70% 0px", threshold: 0 });
+      map.forEach((_, el) => obs.observe(el));
+    }
+
+    // ---------- Anchor links on h2/h3 ----------
+    function injectAnchors() {
+      document.querySelectorAll(".content h2[id], .content h3[id]").forEach(h => {
+        if (h.querySelector(".anchor")) return;
+        const a = document.createElement("a");
+        a.className = "anchor";
+        a.href = "#" + h.id;
+        a.setAttribute("aria-label", "Permalink");
+        a.innerHTML = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-link"/></svg>';
+        h.appendChild(a);
+      });
+    }
+
+    // ---------- Copy-to-clipboard on <pre> ----------
+    function injectCopyButtons() {
+      document.querySelectorAll(".content pre").forEach(pre => {
+        if (pre.classList.contains("mermaid")) return;
+        if (pre.querySelector(".copy-btn")) return;
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "copy-btn";
+        btn.setAttribute("aria-label", "Copy code");
+        btn.innerHTML = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-copy"/></svg>';
+        btn.addEventListener("click", async () => {
+          const code = pre.querySelector("code")?.textContent ?? pre.textContent;
+          try {
+            await navigator.clipboard.writeText(code);
+            btn.classList.add("copied");
+            btn.innerHTML = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>';
+            setTimeout(() => {
+              btn.classList.remove("copied");
+              btn.innerHTML = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-copy"/></svg>';
+            }, 1500);
+          } catch (e) { console.error(e); }
+        });
+        pre.appendChild(btn);
+      });
+    }
+
+    // ---------- Scroll progress ----------
+    function setupScrollProgress() {
+      const bar = document.getElementById("scroll-progress");
+      if (!bar) return;
+      const onScroll = () => {
+        const h = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        const p = h > 0 ? (document.documentElement.scrollTop / h * 100) : 0;
+        bar.style.width = p + "%";
+      };
+      window.addEventListener("scroll", onScroll, { passive: true });
+      onScroll();
+    }
+
+    // ---------- Boot ----------
+    document.addEventListener("DOMContentLoaded", () => {
+      applyThemeIcon();
+      injectAnchors();
+      injectCopyButtons();
+      renderMermaid();
+      setupTocSpy();
+      setupScrollProgress();
+    });
+  </script>
+</body>
+</html>

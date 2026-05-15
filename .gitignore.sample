@@ -1,0 +1,86 @@
+# Sample .gitignore for the unified Flutter program repository.
+# Copy to repo root as `.gitignore` once mobile/, backend/, edge/, infra/
+# scaffolds land in S1.
+
+# ---------- General ----------
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.swp
+.env
+.env.*
+!.env.example
+.idea/
+.vscode/
+*.iml
+
+# ---------- Flutter / Dart (mobile/) ----------
+mobile/.dart_tool/
+mobile/.flutter-plugins
+mobile/.flutter-plugins-dependencies
+mobile/.packages
+mobile/build/
+mobile/.metadata
+mobile/pubspec.lock      # commit OR ignore — pick once and document
+mobile/ios/Pods/
+mobile/ios/.symlinks/
+mobile/ios/Flutter/Flutter.framework
+mobile/ios/Flutter/Flutter.podspec
+mobile/android/.gradle/
+mobile/android/local.properties
+mobile/android/app/release/
+mobile/coverage/
+mobile/**/*.g.dart       # if you choose to NOT commit Drift codegen; we DO commit (see ADR-009)
+
+# ---------- Python / FastAPI (backend/) ----------
+backend/__pycache__/
+backend/**/*.pyc
+backend/**/*.pyo
+backend/.pytest_cache/
+backend/.mypy_cache/
+backend/.ruff_cache/
+backend/.coverage
+backend/htmlcov/
+backend/dist/
+backend/build/
+backend/*.egg-info/
+backend/.venv/
+backend/venv/
+
+# ---------- Node / TypeScript (edge/) ----------
+edge/node_modules/
+edge/dist/
+edge/.deno/
+edge/coverage/
+
+# ---------- Terraform / Infra ----------
+infra/**/.terraform/
+infra/**/*.tfstate
+infra/**/*.tfstate.*
+infra/**/*.tfplan
+infra/**/.terraform.lock.hcl
+
+# ---------- Docker / containers ----------
+**/Dockerfile.local
+**/docker-compose.override.yml
+
+# ---------- Secrets ----------
+**/secrets/*.yaml
+**/secrets/*.json
+**/credentials.json
+**/service-account*.json
+**/*.pem
+**/*.key
+**/*.p12
+**/*.keystore
+
+# ---------- Test artefacts ----------
+**/test-results/
+**/playwright-report/
+**/.nyc_output/
+
+# ---------- Editor / OS noise ----------
+*~
+.directory
+desktop.ini

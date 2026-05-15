@@ -1,0 +1,612 @@
+openapi: 3.1.0
+info:
+  title: Field Work Backend API
+  version: 1.0.0-draft
+  description: |
+    FastAPI integration backend for the Unified Flutter app.
+    
+    Sources of truth:
+      - api-contracts/auth.md
+      - api-contracts/shifts.md
+      - api-contracts/sync.md
+      - api-contracts/media.md
+      - api-contracts/error-codes.md
+    
+    This file is generated/edited alongside the markdown contracts. When in
+    conflict, the markdown is authoritative until backend scaffolding lands
+    in S1; after S1 the YAML is generated from FastAPI's OpenAPI export and
+    diffed against the markdown in CI.
+  contact:
+    name: Backend Lead
+    email: backend-lead@example.invalid
+  license:
+    name: Proprietary
+servers:
+  - url: https://api.fieldwork.example/v1
+    description: Production
+  - url: https://api-staging.fieldwork.example/v1
+    description: Staging
+  - url: http://localhost:8000/v1
+    description: Local
+
+tags:
+  - name: auth
+  - name: shifts
+  - name: sync
+  - name: media
+  - name: admin
+
+security:
+  - bearerAuth: []
+
+paths:
+  /auth/exchange:
+    post:
+      tags: [auth]
+      summary: Exchange Supabase JWT for internal access + refresh tokens
+      security:
+        - supabaseAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DeviceId'
+        - $ref: '#/components/parameters/AppVersion'
+        - $ref: '#/components/parameters/Platform'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthExchangeRequest'
+      responses:
+        '200':
+          description: Tokens + employee context
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthExchangeResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: Employee inactive
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: Odoo unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /auth/refresh:
+    post:
+      tags: [auth]
+      summary: Rotate refresh token, issue new access
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refresh_token]
+              properties:
+                refresh_token: { type: string }
+      responses:
+        '200':
+          description: New access + refresh
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tokens'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/logout:
+    post:
+      tags: [auth]
+      summary: Revoke current session
+      responses:
+        '204':
+          description: Logged out
+
+  /shifts:
+    get:
+      tags: [shifts]
+      summary: List shifts assigned to the authenticated employee
+      parameters:
+        - in: query
+          name: from
+          schema: { type: string, format: date-time }
+        - in: query
+          name: to
+          schema: { type: string, format: date-time }
+        - in: query
+          name: status
+          schema:
+            type: string
+            description: Comma-separated list
+            example: "scheduled,in_progress"
+        - in: query
+          name: cursor
+          schema: { type: string }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100, default: 50 }
+      responses:
+        '200':
+          description: Paginated shift list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShiftListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /shifts/{id}:
+    get:
+      tags: [shifts]
+      summary: Shift detail
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShiftDetail'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /sync/envelope:
+    post:
+      tags: [sync]
+      summary: Submit one envelope (idempotent by client_id)
+      parameters:
+        - in: header
+          name: Idempotency-Key
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SyncEnvelope'
+      responses:
+        '200':
+          description: Already known; status returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncStatusResponse'
+        '202':
+          description: Accepted, queued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncStatusResponse'
+        '400':
+          description: Invalid envelope
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: client_id reused with a different payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '422':
+          description: Invalid shift state or unsupported schema
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: Rate limited
+        '503':
+          description: Backend cannot persist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /sync/status/{client_id}:
+    get:
+      tags: [sync]
+      summary: Poll status for an envelope
+      parameters:
+        - in: path
+          name: client_id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncStatusResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /media/presign:
+    post:
+      tags: [media]
+      summary: Presign a PUT URL for one media object
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MediaPresignRequest'
+      responses:
+        '200':
+          description: Presigned URL
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaPresignResponse'
+        '400':
+          description: Invalid mime or size
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /media/finalize:
+    post:
+      tags: [media]
+      summary: Finalize an upload after S3 PUT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MediaFinalizeRequest'
+      responses:
+        '200':
+          description: Finalized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaFinalizeResponse'
+        '404':
+          description: Object not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: Hash or byte mismatch
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /admin/dead_letters:
+    get:
+      tags: [admin]
+      summary: Inspect dead-letter envelopes (admin only)
+      parameters:
+        - in: query
+          name: employee_id
+          schema: { type: integer }
+      responses:
+        '200':
+          description: List
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DeadLetter'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/dsar/{employee_id}:
+    get:
+      tags: [admin]
+      summary: DSAR export for an employee (admin only)
+      parameters:
+        - in: path
+          name: employee_id
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Export
+          content:
+            application/json:
+              schema: { type: object }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    supabaseAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    DeviceId:
+      in: header
+      name: X-Device-ID
+      schema: { type: string, format: uuid }
+      required: true
+    AppVersion:
+      in: header
+      name: X-App-Version
+      schema: { type: string }
+      required: true
+    Platform:
+      in: header
+      name: X-Platform
+      schema:
+        type: string
+        enum: [ios, android]
+      required: true
+
+  responses:
+    Unauthorized:
+      description: Missing or invalid token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    Forbidden:
+      description: Authenticated but not allowed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+
+  schemas:
+    ErrorEnvelope:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              description: Stable SCREAMING_SNAKE error code per error-codes.md
+              example: TOKEN_EXPIRED
+            message:
+              type: string
+            params:
+              type: object
+              additionalProperties: true
+            request_id:
+              type: string
+
+    AuthExchangeRequest:
+      type: object
+      properties:
+        device_name: { type: string }
+        locale: { type: string, example: en-VN }
+
+    Tokens:
+      type: object
+      required: [access_token, refresh_token, access_expires_in, refresh_expires_in]
+      properties:
+        access_token: { type: string }
+        refresh_token: { type: string }
+        access_expires_in: { type: integer, example: 900 }
+        refresh_expires_in: { type: integer, example: 2592000 }
+
+    Employee:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        phone: { type: string }
+        department: { type: string }
+        job_title: { type: string }
+        avatar_url: { type: string, format: uri }
+
+    AuthExchangeResponse:
+      type: object
+      properties:
+        data:
+          allOf:
+            - $ref: '#/components/schemas/Tokens'
+            - type: object
+              properties:
+                employee:
+                  $ref: '#/components/schemas/Employee'
+                min_app_version: { type: string }
+
+    Shift:
+      type: object
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        site_name: { type: string }
+        site_address: { type: string }
+        project_id: { type: integer }
+        project_name: { type: string }
+        start_at: { type: string, format: date-time }
+        end_at: { type: string, format: date-time }
+        status:
+          type: string
+          enum: [SCHEDULED, IN_PROGRESS, COMPLETED, CANCELLED]
+
+    ShiftListResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/Shift'
+            next_cursor:
+              type: string
+              nullable: true
+
+    SubmissionStatus:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [NONE, CONFIRMED]
+
+    ShiftDetail:
+      type: object
+      properties:
+        data:
+          allOf:
+            - $ref: '#/components/schemas/Shift'
+            - type: object
+              properties:
+                site_geo:
+                  type: object
+                  properties:
+                    lat: { type: number }
+                    lon: { type: number }
+                instructions: { type: string }
+                actual_start_at: { type: string, format: date-time, nullable: true }
+                actual_end_at: { type: string, format: date-time, nullable: true }
+                submissions:
+                  type: object
+                  properties:
+                    ppe_check: { $ref: '#/components/schemas/SubmissionStatus' }
+                    pre_shift: { $ref: '#/components/schemas/SubmissionStatus' }
+                    work_result: { $ref: '#/components/schemas/SubmissionStatus' }
+                    post_shift: { $ref: '#/components/schemas/SubmissionStatus' }
+                team:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id: { type: integer }
+                      name: { type: string }
+                      role: { type: string }
+
+    SyncEnvelope:
+      type: object
+      required: [client_id, type, captured_at, payload, schema_version]
+      properties:
+        client_id: { type: string, format: uuid }
+        type:
+          type: string
+          enum: [PPE_CHECK, FORM_RESPONSE, GPS_EVENT, WORK_RESULT, MEDIA_FINALIZE, VOICE_NOTE]
+        shift_id: { type: integer, nullable: true }
+        captured_at: { type: string, format: date-time }
+        device_id: { type: string }
+        schema_version: { type: integer, example: 1 }
+        payload:
+          type: object
+          additionalProperties: true
+
+    SyncStatus:
+      type: string
+      enum: [PENDING, PROCESSING, CONFIRMED, DEAD_LETTER]
+
+    SyncStatusResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            client_id: { type: string, format: uuid }
+            status:
+              $ref: '#/components/schemas/SyncStatus'
+            odoo_ref: { type: string, nullable: true }
+            received_at: { type: string, format: date-time, nullable: true }
+            processed_at: { type: string, format: date-time, nullable: true }
+            error_code: { type: string, nullable: true }
+            error_message: { type: string, nullable: true }
+
+    MediaPresignRequest:
+      type: object
+      required: [client_id, kind, mime_type, expected_bytes, sha256_hex]
+      properties:
+        client_id: { type: string, format: uuid }
+        kind:
+          type: string
+          enum: [PHOTO, AUDIO]
+        mime_type: { type: string }
+        expected_bytes: { type: integer }
+        sha256_hex: { type: string }
+        shift_id: { type: integer }
+
+    MediaPresignResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            object_key: { type: string }
+            upload_url: { type: string, format: uri }
+            method: { type: string, enum: [PUT] }
+            headers:
+              type: object
+              additionalProperties: { type: string }
+            expires_in: { type: integer }
+
+    MediaFinalizeRequest:
+      type: object
+      required: [client_id, object_key, sha256_hex, bytes]
+      properties:
+        client_id: { type: string, format: uuid }
+        object_key: { type: string }
+        sha256_hex: { type: string }
+        bytes: { type: integer }
+
+    MediaFinalizeResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            client_id: { type: string, format: uuid }
+            status:
+              type: string
+              enum: [UPLOADED]
+
+    DeadLetter:
+      type: object
+      properties:
+        client_id: { type: string, format: uuid }
+        employee_id_partial: { type: string }
+        type: { type: string }
+        error_code: { type: string }
+        received_at: { type: string, format: date-time }
+        last_attempt_at: { type: string, format: date-time }

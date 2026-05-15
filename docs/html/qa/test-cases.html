@@ -1,0 +1,2049 @@
+﻿<!DOCTYPE html>
+<html lang="en" data-theme="light" style="--rec-label: '★ Recommended'">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <title>Test Cases</title>
+  <style>
+    /* ============================================================
+       TOKENS
+       ============================================================ */
+    :root {
+      --bg: #FAFAF7;
+      --surface: #FFFFFF;
+      --surface-2: #F5F5F0;
+      --surface-3: #EFEEE8;
+      --text: #1A1A1A;
+      --text-muted: #4A4A45;
+      --text-subtle: #6B6B66;
+      --accent: #D97757;
+      --accent-hover: #C56843;
+      --accent-soft: #FBEEE6;
+      --accent-border: #F0D5C4;
+      --accent-strong: #A85533;
+      --border: #E5E4DC;
+      --border-strong: #CDCDC4;
+      --code-bg: #F5F2EC;
+      --code-text: #2A2A2A;
+      --info: #2563EB;
+      --info-soft: #EFF6FF;
+      --info-border: #BFDBFE;
+      --warn: #B45309;
+      --warn-soft: #FFFBEB;
+      --warn-border: #FDE68A;
+      --danger: #B91C1C;
+      --danger-soft: #FEF2F2;
+      --danger-border: #FECACA;
+      --success: #047857;
+      --success-soft: #ECFDF5;
+      --success-border: #A7F3D0;
+      --decision: #6D28D9;
+      --decision-soft: #F5F3FF;
+      --decision-border: #DDD6FE;
+      --shadow-sm: 0 1px 2px rgba(20, 14, 8, 0.04);
+      --shadow: 0 1px 2px rgba(20, 14, 8, 0.04), 0 4px 12px rgba(20, 14, 8, 0.06);
+      --shadow-lg: 0 8px 24px rgba(20, 14, 8, 0.10);
+      --radius: 12px;
+      --radius-sm: 8px;
+      --radius-lg: 16px;
+      --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', 'Noto Sans CJK JP', 'Noto Sans CJK KR', sans-serif;
+      --font-mono: 'SF Mono', Menlo, Consolas, monospace;
+      --z-progress: 200;
+      --z-topbar: 100;
+      --z-drawer: 300;
+      --z-backdrop: 250;
+    }
+
+    [data-theme="dark"] {
+      --bg: #1A1714;
+      --surface: #221E1A;
+      --surface-2: #2A2520;
+      --surface-3: #322C26;
+      --text: #F5F0E8;
+      --text-muted: #C8C0B6;
+      --text-subtle: #9A938A;
+      --accent: #E89572;
+      --accent-hover: #F2A87F;
+      --accent-soft: #3A2A22;
+      --accent-border: #5A3D2E;
+      --accent-strong: #F5B493;
+      --border: #2E2924;
+      --border-strong: #463F38;
+      --code-bg: #1E1B17;
+      --code-text: #E8E2D8;
+      --info: #93C5FD;
+      --info-soft: #1E2A3D;
+      --info-border: #2A4365;
+      --warn: #FBBF24;
+      --warn-soft: #332817;
+      --warn-border: #5C4520;
+      --danger: #FCA5A5;
+      --danger-soft: #3A1F1F;
+      --danger-border: #5C2A2A;
+      --success: #6EE7B7;
+      --success-soft: #1A3329;
+      --success-border: #1F5C45;
+      --decision: #C4B5FD;
+      --decision-soft: #2A1F40;
+      --decision-border: #4A3870;
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 4px 12px rgba(0, 0, 0, 0.35);
+      --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.45);
+    }
+
+    /* ============================================================
+       BASE
+       ============================================================ */
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+    body {
+      margin: 0;
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      font-size: 16px;
+      -webkit-font-smoothing: antialiased;
+      transition: background-color 0.2s, color 0.2s;
+    }
+    ::selection { background: var(--accent-soft); color: var(--accent-strong); }
+
+    /* Skip link */
+    .skip-link {
+      position: absolute;
+      top: -100px; left: 8px;
+      padding: 10px 16px;
+      background: var(--accent);
+      color: #fff;
+      text-decoration: none;
+      border-radius: var(--radius-sm);
+      font-weight: 500;
+      z-index: 1000;
+      transition: top 0.15s;
+    }
+    .skip-link:focus { top: 8px; }
+
+    /* SVG sprite container (hidden) */
+    .icon-sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+    .icon { display: inline-block; flex-shrink: 0; vertical-align: middle; stroke: currentColor; fill: none; }
+
+    /* Scroll progress bar */
+    .scroll-progress {
+      position: fixed;
+      top: 0; left: 0;
+      height: 2px;
+      width: 0;
+      background: var(--accent);
+      z-index: var(--z-progress);
+      transition: width 0.05s linear;
+    }
+
+    /* ============================================================
+       TOPBAR
+       ============================================================ */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: var(--z-topbar);
+      background: rgba(250, 250, 247, 0.85);
+      backdrop-filter: saturate(180%) blur(12px);
+      -webkit-backdrop-filter: saturate(180%) blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    [data-theme="dark"] .topbar { background: rgba(26, 23, 20, 0.85); }
+    .topbar-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      color: var(--text);
+      font-size: 14px;
+    }
+    .brand-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-soft);
+      animation: brand-pulse 2.8s ease-in-out infinite;
+    }
+    @keyframes brand-pulse {
+      0%, 100% { box-shadow: 0 0 0 4px var(--accent-soft); }
+      50%      { box-shadow: 0 0 0 7px transparent; }
+    }
+    .topbar-actions { display: flex; gap: 6px; align-items: center; }
+    .icon-btn {
+      width: 40px; height: 40px;
+      display: inline-flex; align-items: center; justify-content: center;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-muted);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s, background-color 0.15s;
+      padding: 0;
+    }
+    .icon-btn .icon { width: 18px; height: 18px; stroke-width: 2; }
+    .icon-btn[hidden] { display: none; }
+
+    /* ============================================================
+       LAYOUT
+       ============================================================ */
+    .layout {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 48px;
+      padding: 32px 24px 96px;
+    }
+    .content { min-width: 0; }
+
+    /* ============================================================
+       TOC (desktop + mobile drawer)
+       ============================================================ */
+    .toc {
+      position: sticky;
+      top: 80px;
+      align-self: start;
+      max-height: calc(100vh - 100px);
+      overflow-y: auto;
+      padding-right: 8px;
+    }
+    .toc::-webkit-scrollbar { width: 6px; }
+    .toc::-webkit-scrollbar-track { background: transparent; }
+    .toc::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
+    .toc-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 12px 12px;
+    }
+    .toc-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-subtle);
+      margin: 0;
+    }
+    .toc-close { display: none; }
+    .toc-nav { display: flex; flex-direction: column; gap: 2px; }
+    .toc-nav a {
+      display: flex; align-items: center;
+      min-height: 36px;
+      padding: 8px 14px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 13.5px;
+      border-left: 2px solid transparent;
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      transition: color 0.15s, background-color 0.15s, border-color 0.15s;
+      line-height: 1.4;
+    }
+    .toc-nav a.active {
+      color: var(--accent);
+      border-left-color: var(--accent);
+      background: var(--accent-soft);
+      font-weight: 500;
+    }
+    .toc-nav a.lvl-3 { padding-left: 26px; font-size: 12.5px; }
+    .toc-backdrop {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      z-index: var(--z-backdrop);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    /* ============================================================
+       DOC HEADER
+       ============================================================ */
+    .doc-header {
+      margin-bottom: 40px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+    .doc-eyebrow {
+      display: inline-flex; align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      background: var(--accent-soft);
+      color: var(--accent-strong);
+      border: 1px solid var(--accent-border);
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      margin-bottom: 16px;
+    }
+    .doc-title {
+      font-size: clamp(28px, 3vw + 16px, 40px);
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      margin: 0 0 12px;
+      color: var(--text);
+      text-wrap: balance;
+    }
+    .doc-subtitle {
+      font-size: clamp(15px, 0.6vw + 13px, 18px);
+      color: var(--text-muted);
+      line-height: 1.55;
+      margin: 0 0 20px;
+      max-width: 75ch;
+      text-wrap: pretty;
+    }
+    .doc-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      font-size: 13px;
+      color: var(--text-subtle);
+    }
+    .doc-meta-item { display: inline-flex; align-items: center; gap: 6px; }
+    .doc-meta .icon { width: 14px; height: 14px; stroke-width: 2; }
+
+    /* ============================================================
+       CONTENT (typography)
+       ============================================================ */
+    .content h1, .content h2, .content h3, .content h4 {
+      color: var(--text);
+      line-height: 1.3;
+      letter-spacing: -0.01em;
+      scroll-margin-top: 80px;
+      text-wrap: balance;
+    }
+    .content h2 {
+      font-size: 26px;
+      font-weight: 600;
+      margin: 56px 0 16px;
+      padding-top: 8px;
+      position: relative;
+    }
+    .content h3 {
+      font-size: 19px;
+      font-weight: 600;
+      margin: 36px 0 12px;
+      position: relative;
+    }
+    .content h4 {
+      font-size: 13px;
+      font-weight: 600;
+      margin: 24px 0 8px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .content > p,
+    .content > ul,
+    .content > ol,
+    .content > blockquote { max-width: 75ch; }
+    .content p { margin: 0 0 16px; text-wrap: pretty; overflow-wrap: anywhere; }
+    .content a { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--accent-border); }
+    .content ul, .content ol { padding-left: 24px; margin: 0 0 16px; }
+    .content li { margin: 4px 0; }
+    .content strong { color: var(--text); font-weight: 600; }
+    .content em { color: var(--text-muted); }
+    .content hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+
+    /* Anchor links injected by JS on h2/h3 with id */
+    .anchor {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 24px; height: 24px;
+      margin-left: 6px;
+      color: var(--text-subtle);
+      opacity: 0;
+      transform: translateY(-1px);
+      transition: opacity 0.15s, color 0.15s;
+      border-bottom: none !important;
+      border-radius: var(--radius-sm);
+    }
+    .anchor .icon { width: 14px; height: 14px; stroke-width: 2; }
+
+    /* Images */
+    .content img {
+      max-width: 100%;
+      height: auto;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      margin: 20px 0;
+      display: block;
+    }
+    .content figure { margin: 20px 0; }
+    .content figure img { margin: 0; }
+    .content figcaption {
+      font-size: 13px;
+      color: var(--text-subtle);
+      margin-top: 8px;
+      text-align: center;
+    }
+
+    /* Task lists (- [ ] / - [x]) */
+    .content .task-list-item { list-style: none; margin-left: -22px; }
+    .content .task-list-item-checkbox {
+      margin-right: 8px;
+      vertical-align: -2px;
+      accent-color: var(--accent);
+    }
+
+    /* Footnotes */
+    .content .footnote-ref a,
+    .content sup a {
+      font-size: 0.75em;
+      vertical-align: super;
+      border-bottom: none;
+      padding: 0 2px;
+    }
+    .content .footnotes {
+      margin-top: 56px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    /* ============================================================
+       CODE
+       ============================================================ */
+    .content code {
+      font-family: var(--font-mono);
+      background: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.88em;
+      color: var(--code-text);
+      border: 1px solid var(--border);
+      overflow-wrap: anywhere;
+    }
+    .content pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      overflow-x: auto;
+      font-size: 13.5px;
+      line-height: 1.6;
+      margin: 16px 0;
+      position: relative;
+    }
+    .content pre code {
+      background: none; padding: 0; border: none;
+      color: var(--code-text);
+      font-size: inherit;
+    }
+    .copy-btn {
+      position: absolute;
+      top: 8px; right: 8px;
+      width: 32px; height: 32px;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      color: var(--text-subtle);
+      opacity: 0;
+      transition: opacity 0.15s, color 0.15s, border-color 0.15s;
+      padding: 0;
+    }
+    .copy-btn .icon { width: 14px; height: 14px; stroke-width: 2; }
+    .copy-btn.copied { color: var(--success); border-color: var(--success-border); opacity: 1; }
+
+    /* ============================================================
+       TIMELINE / STEPS
+       ============================================================ */
+    .timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin: 24px 0;
+      position: relative;
+    }
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 19px;
+      top: 20px;
+      bottom: 20px;
+      width: 2px;
+      background: linear-gradient(180deg, var(--accent-border), var(--border));
+    }
+    .step {
+      display: grid;
+      grid-template-columns: 40px 1fr;
+      gap: 16px;
+      align-items: start;
+      padding: 16px 4px;
+      position: relative;
+      border-radius: var(--radius);
+      transition: background-color 0.15s;
+    }
+    .step-num {
+      width: 40px; height: 40px;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: var(--surface);
+      border: 2px solid var(--accent);
+      color: var(--accent);
+      border-radius: 50%;
+      font-weight: 600;
+      font-size: 14px;
+      flex-shrink: 0;
+      box-shadow: var(--shadow-sm);
+      position: relative;
+      z-index: 1;
+      transition: background-color 0.15s, color 0.15s, transform 0.15s;
+    }
+    .step.done .step-num { background: var(--accent); color: #fff; }
+    .step-body { padding-top: 6px; min-width: 0; }
+    .step-body h3 {
+      margin: 0 0 6px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .step-body p { margin: 0 0 8px; color: var(--text-muted); font-size: 14.5px; max-width: 75ch; }
+    .step-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: 11.5px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    /* ============================================================
+       CALLOUTS
+       ============================================================ */
+    .callout {
+      display: grid;
+      grid-template-columns: 24px 1fr;
+      gap: 14px;
+      padding: 14px 18px;
+      border-radius: var(--radius);
+      border: 1px solid;
+      margin: 20px 0;
+      font-size: 14.5px;
+      line-height: 1.6;
+      max-width: 75ch;
+    }
+    .callout-icon { width: 20px; height: 20px; margin-top: 2px; stroke-width: 2; }
+    .callout-body { min-width: 0; }
+    .callout-title { font-weight: 600; margin: 0 0 4px; font-size: 14px; }
+    .callout-body p:last-child { margin-bottom: 0; }
+    .callout-body code { background: rgba(0,0,0,0.04); }
+    [data-theme="dark"] .callout-body code { background: rgba(255,255,255,0.06); }
+
+    .callout-info     { background: var(--info-soft);     border-color: var(--info-border);     color: var(--text); }
+    .callout-info     .callout-title, .callout-info     .callout-icon { color: var(--info); }
+    .callout-warn     { background: var(--warn-soft);     border-color: var(--warn-border);     color: var(--text); }
+    .callout-warn     .callout-title, .callout-warn     .callout-icon { color: var(--warn); }
+    .callout-danger   { background: var(--danger-soft);   border-color: var(--danger-border);   color: var(--text); }
+    .callout-danger   .callout-title, .callout-danger   .callout-icon { color: var(--danger); }
+    .callout-success  { background: var(--success-soft);  border-color: var(--success-border);  color: var(--text); }
+    .callout-success  .callout-title, .callout-success  .callout-icon { color: var(--success); }
+    .callout-decision { background: var(--decision-soft); border-color: var(--decision-border); color: var(--text); }
+    .callout-decision .callout-title, .callout-decision .callout-icon { color: var(--decision); }
+    .callout-tip      { background: var(--accent-soft);   border-color: var(--accent-border);   color: var(--text); }
+    .callout-tip      .callout-title, .callout-tip      .callout-icon { color: var(--accent-strong); }
+
+    /* ============================================================
+       KEY-POINT HIGHLIGHT
+       ============================================================ */
+    .highlight {
+      background: linear-gradient(135deg, var(--accent-soft), var(--surface-2));
+      border-left: 4px solid var(--accent);
+      padding: 18px 22px;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin: 24px 0;
+      font-size: 16px;
+      line-height: 1.65;
+      max-width: 75ch;
+    }
+    .highlight-label {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent-strong);
+      margin-bottom: 6px;
+    }
+
+    /* ============================================================
+       MERMAID
+       ============================================================ */
+    .diagram {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin: 24px 0;
+      box-shadow: var(--shadow-sm);
+      overflow-x: auto;
+    }
+    .diagram-caption {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px dashed var(--border);
+      font-size: 13px;
+      color: var(--text-subtle);
+      text-align: center;
+    }
+    .mermaid { text-align: center; min-height: 80px; }
+    .mermaid svg { max-width: 100%; height: auto; }
+    .mermaid:not([data-processed]) {
+      opacity: 0.4;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-subtle);
+      white-space: pre-wrap;
+      text-align: left;
+    }
+
+    /* ============================================================
+       PROS / CONS
+       ============================================================ */
+    .proscons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 24px 0;
+    }
+    .proscons-col {
+      padding: 16px 20px;
+      border-radius: var(--radius);
+      border: 1px solid;
+    }
+    .proscons-col h4 {
+      margin: 0 0 12px;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .proscons-col ul { margin: 0; padding-left: 18px; }
+    .proscons-col li { margin: 6px 0; }
+    .pros { background: var(--success-soft); border-color: var(--success-border); }
+    .pros h4 { color: var(--success); }
+    .cons { background: var(--danger-soft); border-color: var(--danger-border); }
+    .cons h4 { color: var(--danger); }
+
+    /* ============================================================
+       COMPARISON CARDS
+       ============================================================ */
+    .compare {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin: 24px 0;
+    }
+    .compare-card {
+      padding: 18px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      transition: border-color 0.18s, box-shadow 0.18s;
+      position: relative;
+    }
+    .compare-card.recommended { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .compare-card.recommended::before {
+      content: var(--rec-label, "★ Recommended");
+      position: absolute; top: -10px; right: 14px;
+      background: var(--accent); color: #fff;
+      padding: 2px 10px; border-radius: 999px;
+      font-size: 11px; font-weight: 600;
+    }
+    .compare-card h4 { margin: 0 0 8px; font-size: 15px; color: var(--text); text-transform: none; letter-spacing: normal; }
+    .compare-card p { margin: 0; color: var(--text-muted); font-size: 14px; }
+
+    /* ============================================================
+       COLLAPSIBLE
+       ============================================================ */
+    details.collapsible {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin: 16px 0;
+      background: var(--surface);
+      overflow: hidden;
+    }
+    details.collapsible[open] { box-shadow: var(--shadow-sm); }
+    details.collapsible > summary {
+      cursor: pointer;
+      padding: 14px 18px;
+      font-weight: 500;
+      color: var(--text);
+      list-style: none;
+      display: flex; align-items: center; gap: 10px;
+      user-select: none;
+      transition: background 0.15s;
+      min-height: 44px;
+    }
+    details.collapsible > summary::-webkit-details-marker { display: none; }
+    details.collapsible > summary::before {
+      content: "›";
+      display: inline-block;
+      transition: transform 0.18s;
+      color: var(--accent);
+      font-size: 18px;
+      font-weight: 700;
+    }
+    details.collapsible[open] > summary::before { transform: rotate(90deg); }
+    .collapsible-body { padding: 4px 18px 18px; border-top: 1px solid var(--border); }
+    .collapsible-body > *:first-child { margin-top: 12px; }
+
+    /* ============================================================
+       TABLES (wrapped via .table-wrap or naturally responsive)
+       ============================================================ */
+    .table-wrap {
+      overflow-x: auto;
+      margin: 20px 0;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      max-width: 100%;
+    }
+    .content table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      background: var(--surface);
+      margin: 0;
+    }
+    /* Standalone tables (not inside .table-wrap) keep visual border */
+    .content > table {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin: 20px 0;
+      display: block;
+      overflow-x: auto;
+    }
+    .content th {
+      background: var(--surface-2);
+      color: var(--text);
+      font-weight: 600;
+      text-align: left;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+    .content td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-muted);
+      vertical-align: top;
+    }
+    .content tr:last-child td { border-bottom: none; }
+
+    /* ============================================================
+       BLOCKQUOTE
+       ============================================================ */
+    .content blockquote {
+      margin: 20px 0;
+      padding: 4px 20px;
+      border-left: 3px solid var(--accent-border);
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    /* ============================================================
+       FOOTER
+       ============================================================ */
+    .doc-footer {
+      margin-top: 80px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--text-subtle);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .doc-footer a { color: var(--accent); text-decoration: none; }
+
+    /* ============================================================
+       FOCUS-VISIBLE (a11y)
+       ============================================================ */
+    *:focus { outline: none; }
+    *:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+      border-radius: var(--radius-sm);
+    }
+    .toc-nav a:focus-visible { outline-offset: -2px; }
+    .icon-btn:focus-visible { outline-offset: 2px; }
+    .anchor:focus-visible { opacity: 1; outline-offset: 2px; }
+    details.collapsible > summary:focus-visible { outline-offset: -2px; }
+
+    /* ============================================================
+       HOVER (only on hover-capable devices to avoid sticky-tap on mobile)
+       ============================================================ */
+    @media (hover: hover) {
+      .icon-btn:hover { color: var(--accent); border-color: var(--accent-border); background: var(--accent-soft); }
+      .toc-nav a:hover { color: var(--accent); background: var(--accent-soft); }
+      .content a:hover { color: var(--accent-hover); border-bottom-color: var(--accent); }
+      .compare-card:hover { border-color: var(--accent-border); box-shadow: var(--shadow); }
+      .compare-card.recommended:hover { border-color: var(--accent); }
+      .content tr:hover td { background: var(--surface-2); }
+      details.collapsible > summary:hover { background: var(--surface-2); }
+      .step:hover { background: var(--surface-2); }
+      .step:hover .step-num { transform: scale(1.05); }
+      .anchor:hover { color: var(--accent); }
+      .content h2:hover .anchor,
+      .content h3:hover .anchor { opacity: 1; }
+      .copy-btn:hover { color: var(--accent); border-color: var(--accent-border); }
+      .content pre:hover .copy-btn { opacity: 1; }
+    }
+    /* On touch devices, copy-btn is always visible at low opacity */
+    @media (hover: none) {
+      .copy-btn { opacity: 0.6; }
+      .anchor { opacity: 0.4; }
+    }
+
+    /* ============================================================
+       MOBILE (≤900px) — TOC becomes off-canvas drawer
+       ============================================================ */
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        padding: 20px 16px 80px;
+      }
+      .topbar-inner { padding: 8px 12px; }
+      .doc-header { margin-bottom: 28px; padding-bottom: 20px; }
+
+      .toc-mobile-trigger { display: inline-flex !important; }
+
+      .toc {
+        position: fixed;
+        top: 0; left: 0;
+        width: min(300px, 82vw);
+        height: 100dvh;
+        max-height: 100dvh;
+        background: var(--surface);
+        z-index: var(--z-drawer);
+        padding: 16px 8px 24px 16px;
+        box-shadow: var(--shadow-lg);
+        transform: translateX(-105%);
+        transition: transform 0.25s ease;
+      }
+      .toc-head { padding: 4px 4px 12px 8px; }
+      .toc-close {
+        display: inline-flex !important;
+        width: 36px; height: 36px;
+        align-items: center; justify-content: center;
+        background: transparent;
+        border: 1px solid transparent;
+        border-radius: var(--radius-sm);
+        color: var(--text-muted);
+        cursor: pointer;
+        padding: 0;
+      }
+      .toc-close .icon { width: 18px; height: 18px; stroke-width: 2; }
+      body.toc-open .toc { transform: translateX(0); }
+      body.toc-open .toc-backdrop {
+        display: block;
+        opacity: 1;
+      }
+      .toc-backdrop {
+        display: block;
+        opacity: 0;
+        pointer-events: none;
+      }
+      body.toc-open .toc-backdrop { pointer-events: auto; }
+      body.toc-open { overflow: hidden; }
+    }
+    @media (min-width: 901px) {
+      .toc-mobile-trigger { display: none !important; }
+    }
+
+    /* ============================================================
+       REDUCED MOTION (a11y)
+       ============================================================ */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+      html { scroll-behavior: auto; }
+      .brand-dot { animation: none; box-shadow: 0 0 0 4px var(--accent-soft); }
+    }
+
+    /* ============================================================
+       PRINT
+       ============================================================ */
+    @media print {
+      .topbar, .toc, .toc-backdrop, .icon-btn, .copy-btn, .anchor, .scroll-progress { display: none !important; }
+      .layout { grid-template-columns: 1fr; padding: 0; max-width: 100%; }
+      body { background: #fff; color: #000; }
+      a { color: #000; }
+      .content pre, .callout, .compare-card, .step, .diagram { break-inside: avoid; }
+      .doc-footer { break-before: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Skip link for keyboard users -->
+  <a href="#main" class="skip-link">Skip to content</a>
+
+  <!-- Scroll progress -->
+  <div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
+
+  <!-- SVG icon sprite (Lucide-style) -->
+  <svg class="icon-sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="i-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></symbol>
+    <symbol id="i-warn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+    <symbol id="i-danger" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></symbol>
+    <symbol id="i-success" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></symbol>
+    <symbol id="i-decision" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></symbol>
+    <symbol id="i-tip" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M15.09 14a5 5 0 1 0-6.18 0 4 4 0 0 1 1.59 2h2.99a4 4 0 0 1 1.6-2Z"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+    <symbol id="i-printer" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></symbol>
+  </svg>
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <button class="icon-btn toc-mobile-trigger" id="toc-toggle" onclick="openToc()" aria-label="Contents" title="Contents">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-menu"/></svg>
+        </button>
+        <span class="brand-dot" aria-hidden="true"></span>
+        <span>DOC</span>
+      </div>
+      <div class="topbar-actions">
+        <button class="icon-btn" onclick="window.print()" title="Print / Save PDF" aria-label="Print / Save PDF">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-printer"/></svg>
+        </button>
+        <button class="icon-btn" id="theme-toggle" onclick="toggleTheme()" title="Toggle theme" aria-label="Toggle theme">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use id="theme-icon-use" href="#i-moon"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- TOC drawer backdrop (mobile) -->
+  <div class="toc-backdrop" onclick="closeToc()" aria-hidden="true"></div>
+
+  <div class="layout">
+    <aside class="toc" id="toc" aria-label="Contents">
+      <div class="toc-head">
+        <p class="toc-title">Contents</p>
+        <button class="toc-close" onclick="closeToc()" aria-label="Close">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-x"/></svg>
+        </button>
+      </div>
+      <nav class="toc-nav" id="toc-nav">
+        <a href="#auth" class="lvl-2">AUTH</a>
+<a href="#tc-auth-001-otp-request-happy-path" class="lvl-3">TC-AUTH-001 — OTP request happy path</a>
+<a href="#tc-auth-002-invalid-phone-format" class="lvl-3">TC-AUTH-002 — Invalid phone format</a>
+<a href="#tc-auth-003-verify-otp-happy-path" class="lvl-3">TC-AUTH-003 — Verify OTP happy path</a>
+<a href="#tc-auth-004-wrong-otp-attempts" class="lvl-3">TC-AUTH-004 — Wrong OTP attempts</a>
+<a href="#tc-auth-005-otp-expired" class="lvl-3">TC-AUTH-005 — OTP expired</a>
+<a href="#tc-auth-006-employee-not-mapped" class="lvl-3">TC-AUTH-006 — Employee not mapped</a>
+<a href="#tc-auth-007-token-refresh-transparent" class="lvl-3">TC-AUTH-007 — Token refresh transparent</a>
+<a href="#tc-auth-008-logout-wipes-data" class="lvl-3">TC-AUTH-008 — Logout wipes data</a>
+<a href="#tc-auth-041-otp-rate-limit-per-device" class="lvl-3">TC-AUTH-041 — OTP rate limit per device</a>
+<a href="#shift" class="lvl-2">SHIFT</a>
+<a href="#tc-shift-001-list-shifts-happy-path" class="lvl-3">TC-SHIFT-001 — List shifts happy path</a>
+<a href="#tc-shift-002-list-pagination" class="lvl-3">TC-SHIFT-002 — List pagination</a>
+<a href="#tc-shift-003-detail-happy-path" class="lvl-3">TC-SHIFT-003 — Detail happy path</a>
+<a href="#tc-shift-004-not-assigned" class="lvl-3">TC-SHIFT-004 — Not assigned</a>
+<a href="#ppe" class="lvl-2">PPE</a>
+<a href="#tc-ppe-001-happy-offline-path" class="lvl-3">TC-PPE-001 — Happy offline path</a>
+<a href="#tc-ppe-002-sync-after-reconnect" class="lvl-3">TC-PPE-002 — Sync after reconnect</a>
+<a href="#tc-ppe-003-idempotent-retry" class="lvl-3">TC-PPE-003 — Idempotent retry</a>
+<a href="#form" class="lvl-2">FORM</a>
+<a href="#tc-form-001-pre-shift-submit-happy-path" class="lvl-3">TC-FORM-001 — Pre-shift submit happy path</a>
+<a href="#tc-form-002-post-shift-submit-happy-path" class="lvl-3">TC-FORM-002 — Post-shift submit happy path</a>
+<a href="#gps" class="lvl-2">GPS</a>
+<a href="#tc-gps-001-check-in-capture-happy-path" class="lvl-3">TC-GPS-001 — Check-in capture happy path</a>
+<a href="#tc-gps-002-permission-denied" class="lvl-3">TC-GPS-002 — Permission denied</a>
+<a href="#tc-gps-003-low-accuracy-warning" class="lvl-3">TC-GPS-003 — Low accuracy warning</a>
+<a href="#media" class="lvl-2">MEDIA</a>
+<a href="#tc-media-001-capture-and-compress" class="lvl-3">TC-MEDIA-001 — Capture and compress</a>
+<a href="#tc-media-002-multiple-photos-in-work-result" class="lvl-3">TC-MEDIA-002 — Multiple photos in work result</a>
+<a href="#tc-media-003-upload-retry-on-5xx" class="lvl-3">TC-MEDIA-003 — Upload retry on 5xx</a>
+<a href="#tc-media-004-bytes-mismatch" class="lvl-3">TC-MEDIA-004 — Bytes mismatch</a>
+<a href="#tc-media-005-sha-256-mismatch" class="lvl-3">TC-MEDIA-005 — SHA-256 mismatch</a>
+<a href="#tc-media-006-work-result-rejected-when-media-not-finalized" class="lvl-3">TC-MEDIA-006 — Work result rejected when media not finalized</a>
+<a href="#voice" class="lvl-2">VOICE</a>
+<a href="#tc-voice-001-record-happy-path" class="lvl-3">TC-VOICE-001 — Record happy path</a>
+<a href="#tc-voice-002-transcript-accuracy-on-benchmark" class="lvl-3">TC-VOICE-002 — Transcript accuracy on benchmark</a>
+<a href="#tc-voice-003-long-recording-60-s" class="lvl-3">TC-VOICE-003 — Long recording (60 s)</a>
+<a href="#tc-voice-004-permission-denied" class="lvl-3">TC-VOICE-004 — Permission denied</a>
+<a href="#tc-voice-005-whisper-latency-nfr-006" class="lvl-3">TC-VOICE-005 — Whisper latency NFR-006</a>
+<a href="#off" class="lvl-2">OFF</a>
+<a href="#tc-off-001-survives-app-kill-mid-capture" class="lvl-3">TC-OFF-001 — Survives app kill mid-capture</a>
+<a href="#tc-off-002-survives-72-h-offline" class="lvl-3">TC-OFF-002 — Survives 72 h offline</a>
+<a href="#tc-off-003-db-integrity-after-force-kill" class="lvl-3">TC-OFF-003 — DB integrity after force-kill</a>
+<a href="#tc-off-004-capacity-test" class="lvl-3">TC-OFF-004 — Capacity test</a>
+<a href="#tc-off-005-disk-full" class="lvl-3">TC-OFF-005 — Disk full</a>
+<a href="#sync" class="lvl-2">SYNC</a>
+<a href="#tc-sync-001-pending-after-first-post" class="lvl-3">TC-SYNC-001 — PENDING after first POST</a>
+<a href="#tc-sync-002-idempotent-retry-returns-existing-status" class="lvl-3">TC-SYNC-002 — Idempotent retry returns existing status</a>
+<a href="#tc-sync-003-409-on-payload-change-for-same-clientid" class="lvl-3">TC-SYNC-003 — 409 on payload change for same client_id</a>
+<a href="#tc-sync-004-deadletter-on-validation-4xx" class="lvl-3">TC-SYNC-004 — DEAD_LETTER on validation 4xx</a>
+<a href="#tc-sync-005-status-poll-happy-path" class="lvl-3">TC-SYNC-005 — Status poll happy path</a>
+<a href="#tc-sync-006-envelope-type-ppecheck-end-to-end" class="lvl-3">TC-SYNC-006 — Envelope type PPE_CHECK end-to-end</a>
+<a href="#tc-sync-007-envelope-type-formresponse" class="lvl-3">TC-SYNC-007 — Envelope type FORM_RESPONSE</a>
+<a href="#tc-sync-008-envelope-type-gpsevent" class="lvl-3">TC-SYNC-008 — Envelope type GPS_EVENT</a>
+<a href="#tc-sync-009-envelope-type-workresult" class="lvl-3">TC-SYNC-009 — Envelope type WORK_RESULT</a>
+<a href="#tc-sync-010-envelope-type-voicenote" class="lvl-3">TC-SYNC-010 — Envelope type VOICE_NOTE</a>
+<a href="#tc-sync-011-backoff-respects-retry-after" class="lvl-3">TC-SYNC-011 — Backoff respects retry-after</a>
+<a href="#tc-sync-012-circuit-breaker-opens-after-n-failures" class="lvl-3">TC-SYNC-012 — Circuit breaker opens after N failures</a>
+<a href="#tc-sync-013-background-sync-resumes-after-app-kill" class="lvl-3">TC-SYNC-013 — Background sync resumes after app kill</a>
+<a href="#tc-sync-014-manual-retry-from-sync-center" class="lvl-3">TC-SYNC-014 — Manual retry from Sync Center</a>
+<a href="#tc-sync-015-sync-center-shows-accurate-counts" class="lvl-3">TC-SYNC-015 — Sync Center shows accurate counts</a>
+<a href="#tc-sync-016-network-change-triggers-drain" class="lvl-3">TC-SYNC-016 — Network change triggers drain</a>
+<a href="#tc-sync-017-deadletter-survives-logout" class="lvl-3">TC-SYNC-017 — DEAD_LETTER survives logout</a>
+<a href="#tc-sync-018-concurrent-capture-from-two-screens" class="lvl-3">TC-SYNC-018 — Concurrent capture from two screens</a>
+<a href="#tc-sync-019-envelope-256-kb-rejected-at-client" class="lvl-3">TC-SYNC-019 — Envelope &gt;256 KB rejected at client</a>
+<a href="#tc-sync-020-clock-skew-tolerated" class="lvl-3">TC-SYNC-020 — Clock skew tolerated</a>
+<a href="#tc-sync-021-schemaversion-forward-compat-reject" class="lvl-3">TC-SYNC-021 — schema_version forward-compat reject</a>
+<a href="#tc-sync-022-token-expired-mid-sync" class="lvl-3">TC-SYNC-022 — Token expired mid-sync</a>
+<a href="#tc-sync-023-logout-clears-in-flight-queue" class="lvl-3">TC-SYNC-023 — Logout clears in-flight queue</a>
+<a href="#tc-sync-024-retry-storm-50-concurrent-retries-yields-exactly-one-odoo-record" class="lvl-3">TC-SYNC-024 — Retry storm (50 concurrent retries) yields exactly one Odoo record</a>
+<a href="#tc-sync-025-dead-letter-inspector-available-to-support" class="lvl-3">TC-SYNC-025 — Dead-letter inspector available to support</a>
+<a href="#odoo" class="lvl-2">ODOO</a>
+<a href="#tc-odoo-001-ppe-write-idempotent" class="lvl-3">TC-ODOO-001 — PPE write idempotent</a>
+<a href="#tc-odoo-002-form-response-write" class="lvl-3">TC-ODOO-002 — Form response write</a>
+<a href="#tc-odoo-003-gps-event-write" class="lvl-3">TC-ODOO-003 — GPS event write</a>
+<a href="#tc-odoo-004-work-result-write" class="lvl-3">TC-ODOO-004 — Work result write</a>
+<a href="#tc-odoo-005-voice-note-write" class="lvl-3">TC-ODOO-005 — Voice note write</a>
+<a href="#tc-odoo-006-media-finalize-creates-irattachment" class="lvl-3">TC-ODOO-006 — Media finalize creates ir.attachment</a>
+<a href="#tc-odoo-007-odoo-down-exponential-backoff" class="lvl-3">TC-ODOO-007 — Odoo down → exponential backoff</a>
+<a href="#tc-odoo-008-schema-mismatch-surfaces-clearly" class="lvl-3">TC-ODOO-008 — Schema mismatch surfaces clearly</a>
+<a href="#tc-odoo-009-odoo-write-p95-2-s" class="lvl-3">TC-ODOO-009 — Odoo write p95 ≤ 2 s</a>
+<a href="#tc-odoo-010-rpc-timeout-enforced" class="lvl-3">TC-ODOO-010 — RPC timeout enforced</a>
+<a href="#tc-odoo-011-auth-via-service-account" class="lvl-3">TC-ODOO-011 — Auth via service account</a>
+<a href="#tc-odoo-024-re-process-same-clientid-no-duplicate" class="lvl-3">TC-ODOO-024 — Re-process same client_id no duplicate</a>
+<a href="#sec" class="lvl-2">SEC</a>
+<a href="#tc-sec-001-secret-scanning-blocks-pr" class="lvl-3">TC-SEC-001 — Secret scanning blocks PR</a>
+<a href="#tc-sec-002-logger-redacts-phone-numbers" class="lvl-3">TC-SEC-002 — Logger redacts phone numbers</a>
+<a href="#tc-sec-003-sentry-scrubber-removes-pii" class="lvl-3">TC-SEC-003 — Sentry scrubber removes PII</a>
+<a href="#tc-sec-004-secure-storage-roundtrip-iosandroid" class="lvl-3">TC-SEC-004 — Secure storage roundtrip iOS+Android</a>
+<a href="#tc-sec-005-pii-scrub-on-logs-mobile" class="lvl-3">TC-SEC-005 — PII scrub on logs (mobile)</a>
+<a href="#tc-sec-006-pii-scrub-on-sentry-mobile" class="lvl-3">TC-SEC-006 — PII scrub on Sentry (mobile)</a>
+<a href="#tc-sec-007-exif-stripped-on-photo-upload" class="lvl-3">TC-SEC-007 — EXIF stripped on photo upload</a>
+<a href="#tc-sec-008-local-db-wiped-on-logout" class="lvl-3">TC-SEC-008 — Local DB wiped on logout</a>
+<a href="#tc-sec-009-refresh-token-rotation" class="lvl-3">TC-SEC-009 — Refresh token rotation</a>
+<a href="#tc-sec-010-refresh-re-use-revokes-session" class="lvl-3">TC-SEC-010 — Refresh re-use revokes session</a>
+<a href="#tc-sec-011-device-binding-mismatch-rejects" class="lvl-3">TC-SEC-011 — Device binding mismatch rejects</a>
+<a href="#tc-sec-012-tls-only" class="lvl-3">TC-SEC-012 — TLS only</a>
+<a href="#tc-sec-013-jwt-with-none-algorithm-rejected" class="lvl-3">TC-SEC-013 — JWT with none algorithm rejected</a>
+<a href="#tc-sec-014-rbac-non-admin-cannot-read-other-employee-data" class="lvl-3">TC-SEC-014 — RBAC: non-admin cannot read other employee data</a>
+<a href="#tc-sec-015-dsar-export-available" class="lvl-3">TC-SEC-015 — DSAR export available</a>
+<a href="#perf" class="lvl-2">PERF</a>
+<a href="#tc-perf-001-cold-start-25-s-p95" class="lvl-3">TC-PERF-001 — Cold start ≤ 2.5 s p95</a>
+<a href="#tc-perf-002-warm-start-10-s-p95" class="lvl-3">TC-PERF-002 — Warm start ≤ 1.0 s p95</a>
+<a href="#tc-perf-003-shift-list-render-100-items-500-ms" class="lvl-3">TC-PERF-003 — Shift list render 100 items ≤ 500 ms</a>
+<a href="#tc-perf-004-photo-capture-preview-300-ms" class="lvl-3">TC-PERF-004 — Photo capture preview ≤ 300 ms</a>
+<a href="#tc-perf-005-photo-compression-800-ms-p95-mid-device" class="lvl-3">TC-PERF-005 — Photo compression ≤ 800 ms p95 mid device</a>
+<a href="#tc-perf-006-whisper-transcribe-30-s-clip-12-s" class="lvl-3">TC-PERF-006 — Whisper transcribe 30 s clip ≤ 12 s</a>
+<a href="#tc-perf-007-battery-cost-6-per-8h-shift" class="lvl-3">TC-PERF-007 — Battery cost ≤ 6 % per 8h shift</a>
+<a href="#tc-perf-008-backend-syncenvelope-server-time-200-ms-p95" class="lvl-3">TC-PERF-008 — Backend /sync/envelope server time ≤ 200 ms p95</a>
+<a href="#tc-perf-009-backend-horizontal-scale-verified" class="lvl-3">TC-PERF-009 — Backend horizontal scale verified</a>
+<a href="#tc-perf-010-android-apk-80-mb" class="lvl-3">TC-PERF-010 — Android APK ≤ 80 MB</a>
+<a href="#tc-perf-011-ios-ipa-120-mb" class="lvl-3">TC-PERF-011 — iOS IPA ≤ 120 MB</a>
+<a href="#tc-perf-012-memory-ceiling-on-capture-screen" class="lvl-3">TC-PERF-012 — Memory ceiling on capture screen</a>
+<a href="#tc-perf-013-cache-eviction-after-30-days" class="lvl-3">TC-PERF-013 — Cache eviction after 30 days</a>
+<a href="#a11y" class="lvl-2">A11Y</a>
+<a href="#tc-a11y-001-all-actionable-controls-have-semantic-labels" class="lvl-3">TC-A11Y-001 — All actionable controls have semantic labels</a>
+<a href="#tc-a11y-002-talkback-voiceover-flow" class="lvl-3">TC-A11Y-002 — TalkBack / VoiceOver flow</a>
+<a href="#tc-a11y-003-dynamic-type-up-to-200" class="lvl-3">TC-A11Y-003 — Dynamic type up to 200 %</a>
+<a href="#tc-a11y-004-color-contrast-451" class="lvl-3">TC-A11Y-004 — Color contrast ≥ 4.5:1</a>
+<a href="#obs" class="lvl-2">OBS</a>
+<a href="#tc-obs-001-mobile-crash-reaches-sentry-within-60-s" class="lvl-3">TC-OBS-001 — Mobile crash reaches Sentry within 60 s</a>
+<a href="#tc-obs-002-backend-trace-propagates-to-odoo-client" class="lvl-3">TC-OBS-002 — Backend trace propagates to Odoo client</a>
+<a href="#tc-obs-003-sync-success-rate-metric-exported" class="lvl-3">TC-OBS-003 — Sync success rate metric exported</a>
+<a href="#tc-obs-004-pager-fires-on-dead-letter-spike" class="lvl-3">TC-OBS-004 — Pager fires on dead-letter spike</a>
+<a href="#mapping-back" class="lvl-2">Mapping back</a>
+<a href="#coverage-targets-at-s10-pilot-gate" class="lvl-2">Coverage targets at S10 pilot gate</a>
+      </nav>
+    </aside>
+
+    <main class="content" id="main">
+      <header class="doc-header">
+        <span class="doc-eyebrow">NOTES</span>
+        <h1 class="doc-title">Test Cases</h1>
+        <p class="doc-subtitle">Catalog of test cases. Each case lists **steps**, **expected**, **owner**, **automation**, **traceability**. Stored as a single file for quick lookup; consider splitting per area in S5 if it exceed…</p>
+        <div class="doc-meta">
+          <span class="doc-meta-item">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-file"/></svg>
+            test-cases.md
+          </span>
+          <span class="doc-meta-item">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-calendar"/></svg>
+            Updated 2026-05-13
+          </span>
+          <span class="doc-meta-item">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-clock"/></svg>
+            ~17 min read
+          </span>
+        </div>
+      </header>
+
+      <!-- CONTENT_START -->
+<p><strong>Status:</strong> Active<br><strong>Owner:</strong> QA Lead</p>
+<p>Catalog of test cases. Each case lists <strong>steps</strong>, <strong>expected</strong>, <strong>owner</strong>, <strong>automation</strong>, <strong>traceability</strong>. Stored as a single file for quick lookup; consider splitting per area in S5 if it exceeds 1500 lines.</p>
+<h2 id="auth">AUTH</h2>
+<h3 id="tc-auth-001-otp-request-happy-path">TC-AUTH-001 — OTP request happy path</h3>
+<ul>
+<li>Pre: phone <code>+84912345678</code> is mapped to an active employee.</li>
+<li>Steps: enter phone, tap Send.</li>
+<li>Expected: 200 from <code>/request_otp</code>, SMS arrives within 30 s, &quot;code sent&quot; UI.</li>
+<li>Automation: integration_test with mocked Twilio.</li>
+<li>FR: FR-001. Story: US-AUTH-001.</li>
+</ul>
+<h3 id="tc-auth-002-invalid-phone-format">TC-AUTH-002 — Invalid phone format</h3>
+<ul>
+<li>Steps: enter <code>0912</code> and tap Send.</li>
+<li>Expected: client-side validation error; no network call.</li>
+<li>Automation: widget test.</li>
+<li>FR: FR-001.</li>
+</ul>
+<h3 id="tc-auth-003-verify-otp-happy-path">TC-AUTH-003 — Verify OTP happy path</h3>
+<ul>
+<li>Pre: TC-AUTH-001 completed.</li>
+<li>Steps: enter received code.</li>
+<li>Expected: 200 from <code>/verify_otp</code>, then 200 from <code>/v1/auth/exchange</code>, app routes to My Shifts; tokens persisted in secure storage.</li>
+<li>Automation: integration_test.</li>
+<li>FR: FR-002.</li>
+</ul>
+<h3 id="tc-auth-004-wrong-otp-attempts">TC-AUTH-004 — Wrong OTP attempts</h3>
+<ul>
+<li>Steps: enter wrong code 5 times.</li>
+<li>Expected: each rejected with <code>INVALID_CODE</code>; on 5th, <code>OTP_LOCKED</code>; UI shows 5-min cooldown.</li>
+<li>Automation: integration_test.</li>
+<li>FR: FR-001/002. NFR-042.</li>
+</ul>
+<h3 id="tc-auth-005-otp-expired">TC-AUTH-005 — OTP expired</h3>
+<ul>
+<li>Steps: wait 5 min after request, enter code.</li>
+<li>Expected: <code>OTP_EXPIRED</code>; UI suggests re-request.</li>
+<li>FR: FR-001.</li>
+</ul>
+<h3 id="tc-auth-006-employee-not-mapped">TC-AUTH-006 — Employee not mapped</h3>
+<ul>
+<li>Pre: phone not in <code>hr.employee</code>.</li>
+<li>Steps: complete OTP flow.</li>
+<li>Expected: 403 <code>EMPLOYEE_NOT_MAPPED</code>; UI shows &quot;contact admin&quot;.</li>
+<li>FR: FR-002.</li>
+</ul>
+<h3 id="tc-auth-007-token-refresh-transparent">TC-AUTH-007 — Token refresh transparent</h3>
+<ul>
+<li>Steps: simulate access token expiry while on My Shifts; trigger an API call.</li>
+<li>Expected: 401 received, refresh executed, original call retried, success.</li>
+<li>Automation: integration_test with clock injection.</li>
+<li>FR: FR-003.</li>
+</ul>
+<h3 id="tc-auth-008-logout-wipes-data">TC-AUTH-008 — Logout wipes data</h3>
+<ul>
+<li>Steps: tap Logout.</li>
+<li>Expected: refresh revoked server-side; secure storage cleared; SQLite tables emptied; routed to login.</li>
+<li>Automation: integration_test.</li>
+<li>FR: FR-003. NFR-044.</li>
+</ul>
+<h3 id="tc-auth-041-otp-rate-limit-per-device">TC-AUTH-041 — OTP rate limit per device</h3>
+<ul>
+<li>Steps: request OTP 4× within 5 min from same device.</li>
+<li>Expected: 4th request → 429 <code>RATE_LIMIT</code>.</li>
+<li>Automation: backend integration test.</li>
+<li>NFR-042.</li>
+</ul>
+<h2 id="shift">SHIFT</h2>
+<h3 id="tc-shift-001-list-shifts-happy-path">TC-SHIFT-001 — List shifts happy path</h3>
+<ul>
+<li>Pre: 3 shifts assigned to logged-in employee (1 SCHEDULED, 1 IN_PROGRESS, 1 COMPLETED).</li>
+<li>Steps: open My Shifts.</li>
+<li>Expected: list shows all 3, sorted by <code>start_at</code>, with sync state badges; cache TTL respected.</li>
+<li>FR: FR-004.</li>
+</ul>
+<h3 id="tc-shift-002-list-pagination">TC-SHIFT-002 — List pagination</h3>
+<ul>
+<li>Pre: 60 shifts in range.</li>
+<li>Steps: scroll to end.</li>
+<li>Expected: cursor-based pagination loads next page.</li>
+<li>FR: FR-004.</li>
+</ul>
+<h3 id="tc-shift-003-detail-happy-path">TC-SHIFT-003 — Detail happy path</h3>
+<ul>
+<li>Steps: tap a shift.</li>
+<li>Expected: detail screen shows title, site, time, instructions; CTAs to PPE / Pre-shift / Work result / Post-shift.</li>
+<li>FR: FR-005.</li>
+</ul>
+<h3 id="tc-shift-004-not-assigned">TC-SHIFT-004 — Not assigned</h3>
+<ul>
+<li>Steps: deep-link to a shift not assigned to user.</li>
+<li>Expected: 403 <code>NOT_ASSIGNED</code>; UI shows &quot;shift not available&quot;.</li>
+<li>FR: FR-005.</li>
+</ul>
+<h2 id="ppe">PPE</h2>
+<h3 id="tc-ppe-001-happy-offline-path">TC-PPE-001 — Happy offline path</h3>
+<ul>
+<li>Pre: airplane mode.</li>
+<li>Steps: complete checklist, submit.</li>
+<li>Expected: row inserted into <code>ppe_check</code> (PENDING), sync_queue row enqueued, badge PENDING.</li>
+<li>FR: FR-006.</li>
+</ul>
+<h3 id="tc-ppe-002-sync-after-reconnect">TC-PPE-002 — Sync after reconnect</h3>
+<ul>
+<li>Pre: TC-PPE-001 completed.</li>
+<li>Steps: enable network.</li>
+<li>Expected: queue drains, row CONFIRMED within 30 s.</li>
+<li>FR: FR-006.</li>
+</ul>
+<h3 id="tc-ppe-003-idempotent-retry">TC-PPE-003 — Idempotent retry</h3>
+<ul>
+<li>Steps: force network failure mid-sync, then succeed.</li>
+<li>Expected: only one Odoo record created.</li>
+<li>FR: FR-006/014. NFR-024.</li>
+</ul>
+<h2 id="form">FORM</h2>
+<h3 id="tc-form-001-pre-shift-submit-happy-path">TC-FORM-001 — Pre-shift submit happy path</h3>
+<ul>
+<li>Steps: fill all fields, submit.</li>
+<li>Expected: row inserted, queued, eventually CONFIRMED.</li>
+<li>FR: FR-007.</li>
+</ul>
+<h3 id="tc-form-002-post-shift-submit-happy-path">TC-FORM-002 — Post-shift submit happy path</h3>
+<ul>
+<li>Steps: at shift end, fill post-shift form.</li>
+<li>Expected: same as above; shift <code>actual_end_at</code> set on CONFIRMED.</li>
+<li>FR: FR-007.</li>
+</ul>
+<h2 id="gps">GPS</h2>
+<h3 id="tc-gps-001-check-in-capture-happy-path">TC-GPS-001 — Check-in capture happy path</h3>
+<ul>
+<li>Steps: tap &quot;Start shift&quot; (consent prompt → grant), GPS captured.</li>
+<li>Expected: <code>gps_event</code> row PENDING with lat/lon/accuracy; shift moves to IN_PROGRESS locally.</li>
+<li>FR: FR-008.</li>
+</ul>
+<h3 id="tc-gps-002-permission-denied">TC-GPS-002 — Permission denied</h3>
+<ul>
+<li>Steps: deny location permission.</li>
+<li>Expected: UI explains; cannot start shift; user can re-grant in settings.</li>
+<li>FR: FR-008. NFR-050.</li>
+</ul>
+<h3 id="tc-gps-003-low-accuracy-warning">TC-GPS-003 — Low accuracy warning</h3>
+<ul>
+<li>Steps: indoor where accuracy &gt; 50 m.</li>
+<li>Expected: UI warns user, asks to retry; if confirmed, captures with accuracy field.</li>
+<li>FR: FR-008.</li>
+</ul>
+<h2 id="media">MEDIA</h2>
+<h3 id="tc-media-001-capture-and-compress">TC-MEDIA-001 — Capture and compress</h3>
+<ul>
+<li>Steps: take photo on mid device.</li>
+<li>Expected: compressed file ≤ 500 KB; SHA-256 stored; row PENDING.</li>
+<li>NFR-005.</li>
+</ul>
+<h3 id="tc-media-002-multiple-photos-in-work-result">TC-MEDIA-002 — Multiple photos in work result</h3>
+<ul>
+<li>Steps: capture 5 photos, submit work result.</li>
+<li>Expected: all uploaded via presign, then envelope CONFIRMED.</li>
+<li>FR: FR-009/010.</li>
+</ul>
+<h3 id="tc-media-003-upload-retry-on-5xx">TC-MEDIA-003 — Upload retry on 5xx</h3>
+<ul>
+<li>Steps: simulate S3 5xx on first attempt.</li>
+<li>Expected: retry up to 6 times; eventually success.</li>
+</ul>
+<h3 id="tc-media-004-bytes-mismatch">TC-MEDIA-004 — Bytes mismatch</h3>
+<ul>
+<li>Steps: spoof bytes count in finalize call.</li>
+<li>Expected: 409 <code>BYTES_MISMATCH</code>.</li>
+</ul>
+<h3 id="tc-media-005-sha-256-mismatch">TC-MEDIA-005 — SHA-256 mismatch</h3>
+<ul>
+<li>Expected: 409 <code>SHA256_MISMATCH</code>.</li>
+</ul>
+<h3 id="tc-media-006-work-result-rejected-when-media-not-finalized">TC-MEDIA-006 — Work result rejected when media not finalized</h3>
+<ul>
+<li>Expected: 422 <code>MEDIA_NOT_FINALIZED</code>.</li>
+</ul>
+<h2 id="voice">VOICE</h2>
+<h3 id="tc-voice-001-record-happy-path">TC-VOICE-001 — Record happy path</h3>
+<ul>
+<li>Steps: hold record, release after 30 s.</li>
+<li>Expected: audio file persisted, transcript starts processing.</li>
+</ul>
+<h3 id="tc-voice-002-transcript-accuracy-on-benchmark">TC-VOICE-002 — Transcript accuracy on benchmark</h3>
+<ul>
+<li>Pre: 10-clip benchmark set.</li>
+<li>Expected: WER ≤ 25 % on tiny.en (acceptable for MVP).</li>
+</ul>
+<h3 id="tc-voice-003-long-recording-60-s">TC-VOICE-003 — Long recording (60 s)</h3>
+<ul>
+<li>Expected: completes within NFR-006 budget on mid device.</li>
+</ul>
+<h3 id="tc-voice-004-permission-denied">TC-VOICE-004 — Permission denied</h3>
+<ul>
+<li>Expected: UI explains; cannot record.</li>
+</ul>
+<h3 id="tc-voice-005-whisper-latency-nfr-006">TC-VOICE-005 — Whisper latency NFR-006</h3>
+<ul>
+<li>Expected: ≤ 25 s for 60 s audio on Pixel 6a.</li>
+</ul>
+<h2 id="off">OFF</h2>
+<h3 id="tc-off-001-survives-app-kill-mid-capture">TC-OFF-001 — Survives app kill mid-capture</h3>
+<ul>
+<li>Steps: kill app while pre-shift form half-filled.</li>
+<li>Expected: drafts (if implemented) restored; SQLite consistent.</li>
+</ul>
+<h3 id="tc-off-002-survives-72-h-offline">TC-OFF-002 — Survives 72 h offline</h3>
+<ul>
+<li>Steps: collect 30 envelopes over 72 h offline, then connect.</li>
+<li>Expected: all CONFIRMED within 10 min.</li>
+<li>NFR-025.</li>
+</ul>
+<h3 id="tc-off-003-db-integrity-after-force-kill">TC-OFF-003 — DB integrity after force-kill</h3>
+<ul>
+<li>Expected: no SYNCING rows left after recovery; all reset to FAILED then drained.</li>
+</ul>
+<h3 id="tc-off-004-capacity-test">TC-OFF-004 — Capacity test</h3>
+<ul>
+<li>Steps: 1000 sync_queue rows.</li>
+<li>Expected: no UI lag; queue drains in order.</li>
+</ul>
+<h3 id="tc-off-005-disk-full">TC-OFF-005 — Disk full</h3>
+<ul>
+<li>Steps: simulate disk-full on photo write.</li>
+<li>Expected: friendly error; no DB corruption.</li>
+</ul>
+<h2 id="sync">SYNC</h2>
+<h3 id="tc-sync-001-pending-after-first-post">TC-SYNC-001 — PENDING after first POST</h3>
+<ul>
+<li>Pre: authenticated session, valid <code>client_id</code> (UUID v4), shift assigned.</li>
+<li>Steps: POST <code>/v1/sync/envelope</code> with PPE_CHECK envelope.</li>
+<li>Expected: 202; body <code>{status: &quot;PENDING&quot;}</code>; Postgres <code>sync_envelope</code> row exists with <code>status=PENDING</code>; Celery job enqueued in Redis.</li>
+<li>Automation: backend integration test (pytest + httpx + Redis fakeredis).</li>
+<li>Owner: Backend QA. FR: FR-012/014. NFR: NFR-024.</li>
+</ul>
+<h3 id="tc-sync-002-idempotent-retry-returns-existing-status">TC-SYNC-002 — Idempotent retry returns existing status</h3>
+<ul>
+<li>Pre: TC-SYNC-001 produced <code>client_id=X</code> with status PENDING.</li>
+<li>Steps: POST same envelope (identical body) twice within 5 s.</li>
+<li>Expected: both calls return same <code>client_id</code>; second response includes current status (<code>PENDING</code> or <code>CONFIRMED</code>); only one Postgres row; only one Celery job dispatched.</li>
+<li>Automation: backend integration test.</li>
+<li>FR: FR-014. ADR-007.</li>
+</ul>
+<h3 id="tc-sync-003-409-on-payload-change-for-same-clientid">TC-SYNC-003 — 409 on payload change for same client_id</h3>
+<ul>
+<li>Steps: POST envelope with <code>client_id=X, payload={notes:&quot;a&quot;}</code>, then POST again with <code>client_id=X, payload={notes:&quot;b&quot;}</code>.</li>
+<li>Expected: second call returns 409 <code>CLIENT_ID_CONFLICT</code>; original payload preserved; Sentry breadcrumb logged on mobile side.</li>
+<li>Automation: backend integration test + mobile widget test asserting Sentry capture.</li>
+<li>FR: FR-014.</li>
+</ul>
+<h3 id="tc-sync-004-deadletter-on-validation-4xx">TC-SYNC-004 — DEAD_LETTER on validation 4xx</h3>
+<ul>
+<li>Pre: envelope with malformed <code>payload.items[0].key</code> (&gt;64 chars).</li>
+<li>Steps: POST envelope; wait for Celery to process.</li>
+<li>Expected: HTTP 202 initially; after Celery validation fails, status moves to <code>DEAD_LETTER</code> with <code>error_code=VALIDATION_FAILED</code>; mobile sees DEAD_LETTER badge after status poll.</li>
+<li>Automation: backend e2e test driving real Celery worker against test broker.</li>
+<li>FR: FR-015.</li>
+</ul>
+<h3 id="tc-sync-005-status-poll-happy-path">TC-SYNC-005 — Status poll happy path</h3>
+<ul>
+<li>Pre: <code>client_id=X</code> is CONFIRMED.</li>
+<li>Steps: GET <code>/v1/sync/status/X</code>.</li>
+<li>Expected: 200; <code>status=CONFIRMED</code>; <code>odoo_ref</code> populated; <code>received_at &lt;= processed_at</code>.</li>
+<li>Automation: backend integration test.</li>
+<li>FR: FR-015.</li>
+</ul>
+<h3 id="tc-sync-006-envelope-type-ppecheck-end-to-end">TC-SYNC-006 — Envelope type PPE_CHECK end-to-end</h3>
+<ul>
+<li>Steps: capture PPE check, sync, observe Odoo.</li>
+<li>Expected: row in <code>field_mobile_sync.ppe_check</code> with all items, <code>external_id=client_id</code>, linked to correct <code>hr.employee</code>.</li>
+<li>Automation: backend e2e + Odoo fixture.</li>
+<li>FR: FR-006/014.</li>
+</ul>
+<h3 id="tc-sync-007-envelope-type-formresponse">TC-SYNC-007 — Envelope type FORM_RESPONSE</h3>
+<ul>
+<li>Steps: submit pre-shift form (10 questions answered).</li>
+<li>Expected: Odoo <code>field_mobile_sync.form_response</code> row with answers JSON intact; schema_version stored.</li>
+<li>Automation: backend e2e.</li>
+<li>FR: FR-007/014.</li>
+</ul>
+<h3 id="tc-sync-008-envelope-type-gpsevent">TC-SYNC-008 — Envelope type GPS_EVENT</h3>
+<ul>
+<li>Steps: submit GPS check-in envelope (lat/lng/accuracy).</li>
+<li>Expected: row in target Odoo model (per DEC-004); Sync Center shows CONFIRMED.</li>
+<li>Automation: backend e2e.</li>
+<li>FR: FR-008/014/015.</li>
+</ul>
+<h3 id="tc-sync-009-envelope-type-workresult">TC-SYNC-009 — Envelope type WORK_RESULT</h3>
+<ul>
+<li>Steps: submit work result envelope referencing 3 finalized media + 1 voice note.</li>
+<li>Expected: Odoo <code>field_mobile_sync.work_result</code> row links all media via <code>client_id</code>; envelope CONFIRMED.</li>
+<li>Automation: backend e2e.</li>
+<li>FR: FR-010/014.</li>
+</ul>
+<h3 id="tc-sync-010-envelope-type-voicenote">TC-SYNC-010 — Envelope type VOICE_NOTE</h3>
+<ul>
+<li>Steps: submit voice note envelope (transcript + duration_ms + media_client_id of finalized audio).</li>
+<li>Expected: Odoo <code>field_mobile_sync.voice_note</code> row created with transcript and audio reference.</li>
+<li>Automation: backend e2e.</li>
+<li>FR: FR-011/014.</li>
+</ul>
+<h3 id="tc-sync-011-backoff-respects-retry-after">TC-SYNC-011 — Backoff respects retry-after</h3>
+<ul>
+<li>Pre: backend returns 503 <code>ODOO_UNAVAILABLE</code> on first 2 attempts.</li>
+<li>Steps: capture envelope.</li>
+<li>Expected: mobile uses exponential backoff (2 s, 4 s, 8 s caps at 60 s); 3rd attempt succeeds; sync_queue retry counter logged.</li>
+<li>Automation: integration test with mock backend.</li>
+<li>FR: FR-013.</li>
+</ul>
+<h3 id="tc-sync-012-circuit-breaker-opens-after-n-failures">TC-SYNC-012 — Circuit breaker opens after N failures</h3>
+<ul>
+<li>Pre: backend returns 5xx 5× in a row.</li>
+<li>Steps: enqueue 10 envelopes.</li>
+<li>Expected: after 5 failures, mobile circuit opens for 60 s; no further requests sent during open state; Sync Center shows &quot;Backing off&quot;; circuit half-opens, single probe, succeeds, closes.</li>
+<li>Automation: integration test.</li>
+<li>FR: FR-013/015.</li>
+</ul>
+<h3 id="tc-sync-013-background-sync-resumes-after-app-kill">TC-SYNC-013 — Background sync resumes after app kill</h3>
+<ul>
+<li>Pre: 5 PENDING envelopes; force-quit app.</li>
+<li>Steps: WorkManager (Android) / BGTaskScheduler (iOS) fires next scheduled window.</li>
+<li>Expected: queue drains; final state CONFIRMED; UI on next launch reflects state.</li>
+<li>Automation: device test (Patrol or Maestro).</li>
+<li>FR: FR-013.</li>
+</ul>
+<h3 id="tc-sync-014-manual-retry-from-sync-center">TC-SYNC-014 — Manual retry from Sync Center</h3>
+<ul>
+<li>Pre: 1 envelope in <code>FAILED</code> (transient 5xx, exhausted retries).</li>
+<li>Steps: open Sync Center, tap Retry.</li>
+<li>Expected: envelope re-enters PENDING; new attempt succeeds; row CONFIRMED.</li>
+<li>Automation: widget test + integration test.</li>
+<li>FR: FR-015.</li>
+</ul>
+<h3 id="tc-sync-015-sync-center-shows-accurate-counts">TC-SYNC-015 — Sync Center shows accurate counts</h3>
+<ul>
+<li>Pre: 4 PENDING, 2 SYNCING, 1 FAILED, 10 CONFIRMED, 1 DEAD_LETTER.</li>
+<li>Steps: open Sync Center.</li>
+<li>Expected: tile counts match SQLite query; tapping each tile filters list correctly.</li>
+<li>Automation: widget test.</li>
+<li>FR: FR-015.</li>
+</ul>
+<h3 id="tc-sync-016-network-change-triggers-drain">TC-SYNC-016 — Network change triggers drain</h3>
+<ul>
+<li>Steps: airplane mode on with 5 PENDING; toggle off.</li>
+<li>Expected: connectivity listener fires; queue drains within 30 s.</li>
+<li>Automation: integration test with mock connectivity stream.</li>
+<li>FR: FR-013.</li>
+</ul>
+<h3 id="tc-sync-017-deadletter-survives-logout">TC-SYNC-017 — DEAD_LETTER survives logout</h3>
+<ul>
+<li>Pre: 1 DEAD_LETTER row with PII redacted.</li>
+<li>Steps: logout, login as same user.</li>
+<li>Expected: per security policy, SQLite is wiped on logout; DEAD_LETTER row gone; backend retains record (queryable by support).</li>
+<li>Automation: integration test.</li>
+<li>FR: FR-003/015. NFR-044.</li>
+</ul>
+<h3 id="tc-sync-018-concurrent-capture-from-two-screens">TC-SYNC-018 — Concurrent capture from two screens</h3>
+<ul>
+<li>Steps: PPE submit + GPS check-in within 100 ms of each other.</li>
+<li>Expected: both rows enqueued; no race on <code>sync_queue</code> PK; both reach CONFIRMED.</li>
+<li>Automation: integration test with concurrent futures.</li>
+<li>FR: FR-012/013.</li>
+</ul>
+<h3 id="tc-sync-019-envelope-256-kb-rejected-at-client">TC-SYNC-019 — Envelope &gt;256 KB rejected at client</h3>
+<ul>
+<li>Steps: attempt to enqueue envelope with payload 300 KB (e.g. base64 image inline).</li>
+<li>Expected: client guard rejects with friendly error; envelope not stored; user prompted to use media upload path.</li>
+<li>Automation: unit test on envelope builder.</li>
+<li>FR: FR-014.</li>
+</ul>
+<h3 id="tc-sync-020-clock-skew-tolerated">TC-SYNC-020 — Clock skew tolerated</h3>
+<ul>
+<li>Pre: device clock skewed by +90 s vs NTP.</li>
+<li>Steps: capture and sync envelope.</li>
+<li>Expected: backend <code>received_at</code> is server clock; <code>captured_at</code> preserved; no rejection.</li>
+<li>Automation: backend integration test with skewed Date header.</li>
+<li>FR: FR-014.</li>
+</ul>
+<h3 id="tc-sync-021-schemaversion-forward-compat-reject">TC-SYNC-021 — schema_version forward-compat reject</h3>
+<ul>
+<li>Pre: backend supports schema_version 1; client posts schema_version 99.</li>
+<li>Steps: POST envelope.</li>
+<li>Expected: 422 <code>UNSUPPORTED_SCHEMA_VERSION</code>; client logs and surfaces upgrade hint.</li>
+<li>Automation: backend integration test.</li>
+<li>FR: FR-014.</li>
+</ul>
+<h3 id="tc-sync-022-token-expired-mid-sync">TC-SYNC-022 — Token expired mid-sync</h3>
+<ul>
+<li>Pre: access token expires while envelope in flight.</li>
+<li>Steps: POST envelope; receive 401 <code>TOKEN_EXPIRED</code>.</li>
+<li>Expected: mobile auto-refreshes once, retries POST, succeeds; no user prompt.</li>
+<li>Automation: integration test with clock injection.</li>
+<li>FR: FR-003/013.</li>
+</ul>
+<h3 id="tc-sync-023-logout-clears-in-flight-queue">TC-SYNC-023 — Logout clears in-flight queue</h3>
+<ul>
+<li>Pre: 3 SYNCING envelopes.</li>
+<li>Steps: tap Logout.</li>
+<li>Expected: in-flight requests cancelled; SQLite wiped; backend retains envelopes (idempotent on next login from same device unlikely but harmless).</li>
+<li>Automation: integration test.</li>
+<li>FR: FR-003.</li>
+</ul>
+<h3 id="tc-sync-024-retry-storm-50-concurrent-retries-yields-exactly-one-odoo-record">TC-SYNC-024 — Retry storm (50 concurrent retries) yields exactly one Odoo record</h3>
+<ul>
+<li>Pre: 50 mobile clients with the same <code>client_id</code> (test harness simulates resend storm).</li>
+<li>Steps: each posts the envelope concurrently.</li>
+<li>Expected: exactly 1 Postgres row, 1 Celery dispatch, 1 Odoo record; all callers receive consistent status.</li>
+<li>Automation: backend load test (locust + assertion).</li>
+<li>FR: FR-014. NFR-024.</li>
+</ul>
+<h3 id="tc-sync-025-dead-letter-inspector-available-to-support">TC-SYNC-025 — Dead-letter inspector available to support</h3>
+<ul>
+<li>Pre: 5 DEAD_LETTER rows for an employee.</li>
+<li>Steps: support uses backend admin endpoint <code>GET /v1/admin/dead_letters?employee_id=42</code>.</li>
+<li>Expected: returns rows with masked PII (phone partial, no full payload to non-admin); admin role returns full payload.</li>
+<li>Automation: backend integration test.</li>
+<li>FR: FR-015. NFR-051.</li>
+</ul>
+<h2 id="odoo">ODOO</h2>
+<h3 id="tc-odoo-001-ppe-write-idempotent">TC-ODOO-001 — PPE write idempotent</h3>
+<ul>
+<li>Pre: <code>field_mobile_sync.ppe_check</code> empty.</li>
+<li>Steps: Celery processes 1 envelope; reprocesses same envelope.</li>
+<li>Expected: 1 row in Odoo; <code>external_id=client_id</code>; second invocation no-ops.</li>
+<li>Automation: backend integration with Odoo container.</li>
+<li>FR: FR-006/014.</li>
+</ul>
+<h3 id="tc-odoo-002-form-response-write">TC-ODOO-002 — Form response write</h3>
+<ul>
+<li>Steps: Celery handles FORM_RESPONSE; writes <code>field_mobile_sync.form_response</code>.</li>
+<li>Expected: answers JSON exactly preserved; <code>form_type</code> and <code>schema_version</code> stored.</li>
+<li>FR: FR-007/014.</li>
+</ul>
+<h3 id="tc-odoo-003-gps-event-write">TC-ODOO-003 — GPS event write</h3>
+<ul>
+<li>Steps: Celery writes GPS_EVENT to target model (per DEC-004).</li>
+<li>Expected: lat/lng with 6 decimals; <code>accuracy_m</code> integer; <code>event_type</code> ∈ {<code>CHECK_IN</code>,<code>CHECK_OUT</code>}.</li>
+<li>FR: FR-008/014.</li>
+</ul>
+<h3 id="tc-odoo-004-work-result-write">TC-ODOO-004 — Work result write</h3>
+<ul>
+<li>Pre: 3 finalized media rows with <code>external_id</code> populated in Odoo.</li>
+<li>Steps: Celery handles WORK_RESULT.</li>
+<li>Expected: <code>field_mobile_sync.work_result</code> references 3 media via M2M; voice note linked if present.</li>
+<li>FR: FR-010/014.</li>
+</ul>
+<h3 id="tc-odoo-005-voice-note-write">TC-ODOO-005 — Voice note write</h3>
+<ul>
+<li>Steps: Celery handles VOICE_NOTE.</li>
+<li>Expected: transcript stored; audio reference resolves to S3 URL or Odoo attachment per DEC-007.</li>
+<li>FR: FR-011/014.</li>
+</ul>
+<h3 id="tc-odoo-006-media-finalize-creates-irattachment">TC-ODOO-006 — Media finalize creates ir.attachment</h3>
+<ul>
+<li>Pre: media uploaded to S3 with valid SHA-256.</li>
+<li>Steps: Celery on MEDIA_FINALIZE creates <code>ir.attachment</code> with <code>res_model</code> and <code>res_id</code> per envelope target.</li>
+<li>Expected: 1 attachment per media; reusing same client_id is no-op.</li>
+<li>FR: FR-009.</li>
+</ul>
+<h3 id="tc-odoo-007-odoo-down-exponential-backoff">TC-ODOO-007 — Odoo down → exponential backoff</h3>
+<ul>
+<li>Pre: Odoo container stopped.</li>
+<li>Steps: Celery retries 3× with backoff 30s/2m/10m.</li>
+<li>Expected: after 3 fails, envelope status remains PROCESSING; alert fires (<code>OdooUnreachable</code>); on Odoo recovery, envelope succeeds without re-enqueue from mobile.</li>
+<li>Automation: backend integration test.</li>
+<li>NFR: NFR-026.</li>
+</ul>
+<h3 id="tc-odoo-008-schema-mismatch-surfaces-clearly">TC-ODOO-008 — Schema mismatch surfaces clearly</h3>
+<ul>
+<li>Pre: Odoo missing <code>field_mobile_sync.ppe_check</code>.</li>
+<li>Steps: Celery attempts write.</li>
+<li>Expected: envelope marked DEAD_LETTER with <code>error_code=ODOO_MODEL_MISSING</code>; runbook <code>runbooks/sync-recovery.md</code> referenced.</li>
+<li>FR: FR-015. ADR-005.</li>
+</ul>
+<h3 id="tc-odoo-009-odoo-write-p95-2-s">TC-ODOO-009 — Odoo write p95 ≤ 2 s</h3>
+<ul>
+<li>Pre: load profile 10 envelopes/min sustained for 30 min.</li>
+<li>Steps: measure Celery → Odoo write latency.</li>
+<li>Expected: p95 ≤ 2.0 s, p99 ≤ 5.0 s; failure rate &lt; 0.1 %.</li>
+<li>Automation: load test in nightly CI.</li>
+<li>NFR: NFR-013.</li>
+</ul>
+<h3 id="tc-odoo-010-rpc-timeout-enforced">TC-ODOO-010 — RPC timeout enforced</h3>
+<ul>
+<li>Pre: Odoo simulated to hang on RPC.</li>
+<li>Steps: Celery worker invokes JSON-RPC.</li>
+<li>Expected: timeout at 30 s; raises retryable error; envelope stays PROCESSING.</li>
+<li>Automation: backend integration test.</li>
+<li>NFR: NFR-013.</li>
+</ul>
+<h3 id="tc-odoo-011-auth-via-service-account">TC-ODOO-011 — Auth via service account</h3>
+<ul>
+<li>Pre: Celery uses Odoo service account (no per-user impersonation in MVP).</li>
+<li>Expected: writes attribute <code>created_by_employee_id</code> field; service account permissions audited.</li>
+<li>Automation: security review checklist.</li>
+<li>NFR: NFR-046.</li>
+</ul>
+<h3 id="tc-odoo-024-re-process-same-clientid-no-duplicate">TC-ODOO-024 — Re-process same client_id no duplicate</h3>
+<ul>
+<li>Pre: 1 envelope already CONFIRMED.</li>
+<li>Steps: replay Celery message.</li>
+<li>Expected: handler observes <code>external_id</code> already exists; no-op; status remains CONFIRMED.</li>
+<li>Automation: backend integration test.</li>
+<li>FR: FR-014.</li>
+</ul>
+<h2 id="sec">SEC</h2>
+<h3 id="tc-sec-001-secret-scanning-blocks-pr">TC-SEC-001 — Secret scanning blocks PR</h3>
+<ul>
+<li>Steps: open a PR introducing <code>SUPABASE_SERVICE_KEY=...</code> literal.</li>
+<li>Expected: pre-commit hook fails locally (gitleaks); CI fails on PR with link to remediation.</li>
+<li>Automation: CI pipeline test.</li>
+<li>NFR: NFR-040.</li>
+</ul>
+<h3 id="tc-sec-002-logger-redacts-phone-numbers">TC-SEC-002 — Logger redacts phone numbers</h3>
+<ul>
+<li>Steps: log line <code>phone=+84912345678</code>.</li>
+<li>Expected: emitted as <code>phone=+84***5678</code> in log sink (Sentry, Datadog, stdout).</li>
+<li>Automation: unit test on logger formatter.</li>
+<li>NFR: NFR-041.</li>
+</ul>
+<h3 id="tc-sec-003-sentry-scrubber-removes-pii">TC-SEC-003 — Sentry scrubber removes PII</h3>
+<ul>
+<li>Steps: throw exception carrying user phone, OTP, lat/lng in extra context.</li>
+<li>Expected: Sentry payload after <code>before_send</code> hook contains <code>***</code> for those keys; original values absent.</li>
+<li>Automation: unit test against Sentry SDK in mocked transport mode.</li>
+<li>NFR: NFR-041.</li>
+</ul>
+<h3 id="tc-sec-004-secure-storage-roundtrip-iosandroid">TC-SEC-004 — Secure storage roundtrip iOS+Android</h3>
+<ul>
+<li>Steps: store JWT, restart app, read.</li>
+<li>Expected: same JWT value returned; on Android backed by Keystore (StrongBox if available); on iOS backed by Keychain with <code>kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly</code>.</li>
+<li>Automation: integration_test on real devices.</li>
+<li>NFR: NFR-043.</li>
+</ul>
+<h3 id="tc-sec-005-pii-scrub-on-logs-mobile">TC-SEC-005 — PII scrub on logs (mobile)</h3>
+<ul>
+<li>Steps: enable verbose mobile logging, perform OTP flow.</li>
+<li>Expected: no full phone, no OTP code, no JWT body in logs (only <code>jti</code> last-4).</li>
+<li>Automation: integration_test with log sink capture.</li>
+<li>NFR: NFR-041.</li>
+</ul>
+<h3 id="tc-sec-006-pii-scrub-on-sentry-mobile">TC-SEC-006 — PII scrub on Sentry (mobile)</h3>
+<ul>
+<li>Steps: trigger crash carrying phone in breadcrumbs.</li>
+<li>Expected: Sentry <code>before_send</code> removes phone from breadcrumbs.</li>
+<li>Automation: unit test.</li>
+<li>NFR: NFR-041.</li>
+</ul>
+<h3 id="tc-sec-007-exif-stripped-on-photo-upload">TC-SEC-007 — EXIF stripped on photo upload</h3>
+<ul>
+<li>Steps: capture photo with GPS+camera+orientation EXIF; upload via <code>/v1/media/finalize</code>.</li>
+<li>Expected: stored object has only <code>Orientation</code> retained; GPS, Make, Model, DateTime stripped at client before upload.</li>
+<li>Automation: integration test reading uploaded object EXIF.</li>
+<li>NFR: NFR-045.</li>
+</ul>
+<h3 id="tc-sec-008-local-db-wiped-on-logout">TC-SEC-008 — Local DB wiped on logout</h3>
+<ul>
+<li>Steps: capture data, logout.</li>
+<li>Expected: all SQLite tables truncated; database file size shrinks; secure storage cleared.</li>
+<li>Automation: integration_test asserting row counts and file size.</li>
+<li>NFR: NFR-044.</li>
+</ul>
+<h3 id="tc-sec-009-refresh-token-rotation">TC-SEC-009 — Refresh token rotation</h3>
+<ul>
+<li>Steps: call <code>/v1/auth/refresh</code>; capture new refresh.</li>
+<li>Expected: new refresh token issued; old refresh marked <code>rotated_at</code>; reusing old refresh returns 401 <code>REFRESH_INVALID</code>.</li>
+<li>Automation: backend integration test.</li>
+<li>NFR: NFR-046.</li>
+</ul>
+<h3 id="tc-sec-010-refresh-re-use-revokes-session">TC-SEC-010 — Refresh re-use revokes session</h3>
+<ul>
+<li>Steps: replay an already-rotated refresh token.</li>
+<li>Expected: 401; session marked <code>revoked_reason=REUSE</code>; all sibling refreshes for that session also revoked; security alert fires.</li>
+<li>Automation: backend integration test.</li>
+<li>NFR: NFR-046.</li>
+</ul>
+<h3 id="tc-sec-011-device-binding-mismatch-rejects">TC-SEC-011 — Device binding mismatch rejects</h3>
+<ul>
+<li>Steps: copy refresh token to a different device-id; attempt refresh.</li>
+<li>Expected: 401 <code>DEVICE_MISMATCH</code>; original session unaffected; alert fires.</li>
+<li>Automation: backend integration test.</li>
+<li>NFR: NFR-046.</li>
+</ul>
+<h3 id="tc-sec-012-tls-only">TC-SEC-012 — TLS only</h3>
+<ul>
+<li>Steps: attempt http (non-TLS) request to backend.</li>
+<li>Expected: connection refused at LB level; HSTS header present in production responses.</li>
+<li>Automation: smoke test.</li>
+<li>NFR: NFR-040.</li>
+</ul>
+<h3 id="tc-sec-013-jwt-with-none-algorithm-rejected">TC-SEC-013 — JWT with <code>none</code> algorithm rejected</h3>
+<ul>
+<li>Steps: forge token with <code>alg:none</code>.</li>
+<li>Expected: 401 <code>INVALID_TOKEN</code>.</li>
+<li>Automation: backend integration test.</li>
+<li>NFR: NFR-046.</li>
+</ul>
+<h3 id="tc-sec-014-rbac-non-admin-cannot-read-other-employee-data">TC-SEC-014 — RBAC: non-admin cannot read other employee data</h3>
+<ul>
+<li>Steps: employee A queries shifts for employee B by ID.</li>
+<li>Expected: 403 <code>FORBIDDEN</code>.</li>
+<li>Automation: backend integration test.</li>
+<li>NFR: NFR-047.</li>
+</ul>
+<h3 id="tc-sec-015-dsar-export-available">TC-SEC-015 — DSAR export available</h3>
+<ul>
+<li>Steps: support invokes <code>GET /v1/admin/dsar/{employee_id}</code>.</li>
+<li>Expected: structured export of employee&#39;s captures; logged in audit.</li>
+<li>Automation: backend integration test.</li>
+<li>NFR: NFR-051.</li>
+</ul>
+<h2 id="perf">PERF</h2>
+<h3 id="tc-perf-001-cold-start-25-s-p95">TC-PERF-001 — Cold start ≤ 2.5 s p95</h3>
+<ul>
+<li>Pre: mid device (Pixel 6a, iPhone 12), release build, app evicted.</li>
+<li>Steps: launch app, measure to first interactive frame on My Shifts (offline cache present).</li>
+<li>Expected: p95 ≤ 2.5 s across 30 runs.</li>
+<li>Automation: integration_test with <code>IntegrationTestWidgetsFlutterBinding.reportData</code>.</li>
+<li>NFR: NFR-001.</li>
+</ul>
+<h3 id="tc-perf-002-warm-start-10-s-p95">TC-PERF-002 — Warm start ≤ 1.0 s p95</h3>
+<ul>
+<li>Steps: foreground app from background.</li>
+<li>Expected: p95 ≤ 1.0 s.</li>
+<li>Automation: integration_test.</li>
+<li>NFR: NFR-001.</li>
+</ul>
+<h3 id="tc-perf-003-shift-list-render-100-items-500-ms">TC-PERF-003 — Shift list render 100 items ≤ 500 ms</h3>
+<ul>
+<li>Pre: 100 cached shifts in SQLite.</li>
+<li>Steps: open My Shifts.</li>
+<li>Expected: p95 first paint of list ≤ 500 ms.</li>
+<li>Automation: integration_test.</li>
+<li>NFR: NFR-002.</li>
+</ul>
+<h3 id="tc-perf-004-photo-capture-preview-300-ms">TC-PERF-004 — Photo capture preview ≤ 300 ms</h3>
+<ul>
+<li>Steps: tap shutter; measure time to capture-confirmed UI.</li>
+<li>Expected: p95 ≤ 300 ms on mid device.</li>
+<li>Automation: integration_test.</li>
+<li>NFR: NFR-004.</li>
+</ul>
+<h3 id="tc-perf-005-photo-compression-800-ms-p95-mid-device">TC-PERF-005 — Photo compression ≤ 800 ms p95 mid device</h3>
+<ul>
+<li>Pre: 12 MP source photo.</li>
+<li>Steps: compress to JPEG ≤ 500 KB.</li>
+<li>Expected: p95 ≤ 800 ms on mid device.</li>
+<li>Automation: integration_test.</li>
+<li>NFR: NFR-005.</li>
+</ul>
+<h3 id="tc-perf-006-whisper-transcribe-30-s-clip-12-s">TC-PERF-006 — Whisper transcribe 30 s clip ≤ 12 s</h3>
+<ul>
+<li>Steps: feed 30 s audio to on-device Whisper tiny.en.</li>
+<li>Expected: transcript returned within 12 s on mid device.</li>
+<li>Automation: integration_test.</li>
+<li>NFR: NFR-006.</li>
+</ul>
+<h3 id="tc-perf-007-battery-cost-6-per-8h-shift">TC-PERF-007 — Battery cost ≤ 6 % per 8h shift</h3>
+<ul>
+<li>Pre: typical workday simulation (10 captures, 2 photos each, GPS check-in/out).</li>
+<li>Steps: charge device to 100 %, run 8 h, read battery delta.</li>
+<li>Expected: ≤ 6 % attributable to app.</li>
+<li>Automation: manual measurement; tracked in pilot dashboard.</li>
+<li>NFR: NFR-007.</li>
+</ul>
+<h3 id="tc-perf-008-backend-syncenvelope-server-time-200-ms-p95">TC-PERF-008 — Backend <code>/sync/envelope</code> server time ≤ 200 ms p95</h3>
+<ul>
+<li>Steps: 10 RPS sustained for 10 min.</li>
+<li>Expected: p95 server-time ≤ 200 ms; p99 ≤ 500 ms; error rate &lt; 0.1 %.</li>
+<li>Automation: load test (k6 / locust).</li>
+<li>NFR: NFR-011.</li>
+</ul>
+<h3 id="tc-perf-009-backend-horizontal-scale-verified">TC-PERF-009 — Backend horizontal scale verified</h3>
+<ul>
+<li>Steps: scale FastAPI from 2 → 8 pods under load.</li>
+<li>Expected: p95 latency does not regress; throughput scales linearly to 80 RPS.</li>
+<li>Automation: nightly load test.</li>
+<li>NFR: NFR-012.</li>
+</ul>
+<h3 id="tc-perf-010-android-apk-80-mb">TC-PERF-010 — Android APK ≤ 80 MB</h3>
+<ul>
+<li>Steps: build release APK + Play asset delivery.</li>
+<li>Expected: install size ≤ 80 MB (excluding Whisper model if downloaded on-demand per DEC-010).</li>
+<li>Automation: CI artifact size check.</li>
+<li>NFR: NFR-008.</li>
+</ul>
+<h3 id="tc-perf-011-ios-ipa-120-mb">TC-PERF-011 — iOS IPA ≤ 120 MB</h3>
+<ul>
+<li>Steps: build release IPA.</li>
+<li>Expected: install size ≤ 120 MB.</li>
+<li>Automation: CI artifact size check.</li>
+<li>NFR: NFR-008.</li>
+</ul>
+<h3 id="tc-perf-012-memory-ceiling-on-capture-screen">TC-PERF-012 — Memory ceiling on capture screen</h3>
+<ul>
+<li>Pre: capture 5 photos (12 MP each).</li>
+<li>Steps: monitor RSS during capture.</li>
+<li>Expected: peak RSS ≤ 250 MB; no OOMs on Android Go-class device.</li>
+<li>Automation: integration_test with memory probe.</li>
+<li>NFR: NFR-009.</li>
+</ul>
+<h3 id="tc-perf-013-cache-eviction-after-30-days">TC-PERF-013 — Cache eviction after 30 days</h3>
+<ul>
+<li>Steps: simulate 31-day-old cached shift entries.</li>
+<li>Expected: eviction job removes records; SQLite vacuum reclaims space.</li>
+<li>Automation: integration test with clock injection.</li>
+<li>NFR: NFR-010.</li>
+</ul>
+<h2 id="a11y">A11Y</h2>
+<h3 id="tc-a11y-001-all-actionable-controls-have-semantic-labels">TC-A11Y-001 — All actionable controls have semantic labels</h3>
+<ul>
+<li>Steps: dump semantics tree for My Shifts, PPE, Capture, Sync Center.</li>
+<li>Expected: every Tappable has non-empty <code>Semantics.label</code>; touch target ≥ 44×44 dp.</li>
+<li>Automation: widget test using <code>tester.semantics</code>.</li>
+<li>NFR: NFR-060.</li>
+</ul>
+<h3 id="tc-a11y-002-talkback-voiceover-flow">TC-A11Y-002 — TalkBack / VoiceOver flow</h3>
+<ul>
+<li>Steps: enable screen reader, complete OTP login + capture PPE.</li>
+<li>Expected: focus order logical; all critical content read aloud; no traps.</li>
+<li>Automation: manual on iOS+Android per release.</li>
+<li>NFR: NFR-060.</li>
+</ul>
+<h3 id="tc-a11y-003-dynamic-type-up-to-200">TC-A11Y-003 — Dynamic type up to 200 %</h3>
+<ul>
+<li>Steps: set system font scale to 2.0.</li>
+<li>Expected: no clipped text on auth, shift list, capture screens; layout adapts.</li>
+<li>Automation: golden tests at multiple scales.</li>
+<li>NFR: NFR-061.</li>
+</ul>
+<h3 id="tc-a11y-004-color-contrast-451">TC-A11Y-004 — Color contrast ≥ 4.5:1</h3>
+<ul>
+<li>Steps: audit theme tokens.</li>
+<li>Expected: all body text and primary CTAs meet WCAG AA contrast.</li>
+<li>Automation: contrast lint in CI.</li>
+<li>NFR: NFR-062.</li>
+</ul>
+<h2 id="obs">OBS</h2>
+<h3 id="tc-obs-001-mobile-crash-reaches-sentry-within-60-s">TC-OBS-001 — Mobile crash reaches Sentry within 60 s</h3>
+<ul>
+<li>Steps: trigger uncaught exception in test build.</li>
+<li>Expected: event in Sentry within 60 s of network availability; PII scrubbed.</li>
+<li>Automation: smoke after each release.</li>
+<li>NFR: NFR-070.</li>
+</ul>
+<h3 id="tc-obs-002-backend-trace-propagates-to-odoo-client">TC-OBS-002 — Backend trace propagates to Odoo client</h3>
+<ul>
+<li>Steps: capture <code>traceparent</code> header from <code>/sync/envelope</code>; verify Celery + Odoo RPC client logs same trace.</li>
+<li>Expected: trace spans show end-to-end path with timing breakdown.</li>
+<li>Automation: backend integration test reading OTel exporter.</li>
+<li>NFR: NFR-071.</li>
+</ul>
+<h3 id="tc-obs-003-sync-success-rate-metric-exported">TC-OBS-003 — Sync success rate metric exported</h3>
+<ul>
+<li>Steps: drive 100 envelopes; query <code>sync_envelope_total{status=&quot;confirmed&quot;}</code> from Prometheus.</li>
+<li>Expected: metric matches; dashboard shows current rate.</li>
+<li>Automation: backend integration test.</li>
+<li>NFR: NFR-071.</li>
+</ul>
+<h3 id="tc-obs-004-pager-fires-on-dead-letter-spike">TC-OBS-004 — Pager fires on dead-letter spike</h3>
+<ul>
+<li>Steps: produce 50 DEAD_LETTER in 5 min in staging.</li>
+<li>Expected: PagerDuty incident created; runbook link present in alert.</li>
+<li>Automation: chaos rehearsal each quarter.</li>
+<li>NFR: NFR-072.</li>
+</ul>
+<h2 id="mapping-back">Mapping back</h2>
+<p>Each TC&#39;s &quot;FR&quot; / &quot;NFR&quot; line is the link back to the FR matrix. CI script (planned for S1) regenerates the FR matrix from this file plus story front matter.</p>
+<h2 id="coverage-targets-at-s10-pilot-gate">Coverage targets at S10 pilot gate</h2>
+<div class="table-wrap"><table><thead><tr><th>Suite</th><th>Target</th></tr></thead><tbody><tr><td>Unit (mobile)</td><td>≥ 70 % line coverage on <code>@core/*</code> and <code>screen/*/state/*</code></td></tr>
+<tr><td>Unit (backend)</td><td>≥ 80 % line coverage on <code>app/sync</code>, <code>app/auth</code>, <code>app/odoo</code></td></tr>
+<tr><td>Widget tests</td><td>All capture screens + Sync Center + Auth</td></tr>
+<tr><td>Integration tests</td><td>All TC-*-001 happy paths automated</td></tr>
+<tr><td>E2E (device matrix)</td><td>At least 1 device per row in <code>qa/device-matrix.md</code></td></tr>
+<tr><td>Load (k6)</td><td>TC-PERF-008 + TC-SYNC-024 weekly</td></tr>
+<tr><td>Security</td><td>All TC-SEC-* automated where feasible; manual pen-test once before pilot</td></tr></tbody></table></div>
+
+<!-- CONTENT_END -->
+
+      <footer class="doc-footer">
+        <span>Generated by <a href="#">md2html</a></span>
+        <span>Source: test-cases.md</span>
+      </footer>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+  <script>
+    // ---------- Theme ----------
+    const STORAGE_KEY = "md2html-theme";
+    function currentTheme() { return document.documentElement.dataset.theme || "light"; }
+    function applyThemeIcon() {
+      const use = document.getElementById("theme-icon-use");
+      if (use) use.setAttribute("href", currentTheme() === "dark" ? "#i-sun" : "#i-moon");
+    }
+    (function restoreTheme() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) document.documentElement.dataset.theme = saved;
+    })();
+
+    // ---------- Mermaid ----------
+    const diagramSources = new Map();
+    function initMermaid() {
+      const isDark = currentTheme() === "dark";
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: isDark ? "dark" : "default",
+        themeVariables: {
+          primaryColor: isDark ? "#3A2A22" : "#FBEEE6",
+          primaryTextColor: isDark ? "#F5F0E8" : "#1A1A1A",
+          primaryBorderColor: isDark ? "#E89572" : "#D97757",
+          lineColor: isDark ? "#9A938A" : "#6B6B66",
+          secondaryColor: isDark ? "#2A2520" : "#F5F5F0",
+          tertiaryColor: isDark ? "#221E1A" : "#FFFFFF",
+          fontFamily: "Inter, system-ui, sans-serif",
+        },
+      });
+    }
+    async function renderMermaid() {
+      initMermaid();
+      const els = document.querySelectorAll(".mermaid");
+      els.forEach(el => {
+        if (!diagramSources.has(el)) diagramSources.set(el, el.textContent.trim());
+        el.textContent = diagramSources.get(el);
+        el.removeAttribute("data-processed");
+      });
+      try { await mermaid.run({ nodes: els }); } catch (e) { console.error(e); }
+    }
+    function toggleTheme() {
+      const next = currentTheme() === "light" ? "dark" : "light";
+      document.documentElement.dataset.theme = next;
+      localStorage.setItem(STORAGE_KEY, next);
+      applyThemeIcon();
+      renderMermaid();
+    }
+
+    // ---------- TOC drawer (mobile) ----------
+    function openToc()  { document.body.classList.add("toc-open"); }
+    function closeToc() { document.body.classList.remove("toc-open"); }
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape" && document.body.classList.contains("toc-open")) closeToc();
+    });
+
+    // ---------- TOC scrollspy ----------
+    function setupTocSpy() {
+      const links = document.querySelectorAll("#toc-nav a[href^='#']");
+      if (!links.length) {
+        const toc = document.getElementById("toc");
+        if (toc) toc.style.display = "none";
+        return;
+      }
+      const map = new Map();
+      links.forEach(a => {
+        const id = a.getAttribute("href").slice(1);
+        const el = document.getElementById(id);
+        if (el) map.set(el, a);
+        a.addEventListener("click", () => {
+          if (window.matchMedia("(max-width: 900px)").matches) closeToc();
+        });
+      });
+      const obs = new IntersectionObserver((entries) => {
+        entries.forEach(en => {
+          const link = map.get(en.target);
+          if (!link) return;
+          if (en.isIntersecting) {
+            links.forEach(l => l.classList.remove("active"));
+            link.classList.add("active");
+          }
+        });
+      }, { rootMargin: "-80px 0px -70% 0px", threshold: 0 });
+      map.forEach((_, el) => obs.observe(el));
+    }
+
+    // ---------- Anchor links on h2/h3 ----------
+    function injectAnchors() {
+      document.querySelectorAll(".content h2[id], .content h3[id]").forEach(h => {
+        if (h.querySelector(".anchor")) return;
+        const a = document.createElement("a");
+        a.className = "anchor";
+        a.href = "#" + h.id;
+        a.setAttribute("aria-label", "Permalink");
+        a.innerHTML = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-link"/></svg>';
+        h.appendChild(a);
+      });
+    }
+
+    // ---------- Copy-to-clipboard on <pre> ----------
+    function injectCopyButtons() {
+      document.querySelectorAll(".content pre").forEach(pre => {
+        if (pre.classList.contains("mermaid")) return;
+        if (pre.querySelector(".copy-btn")) return;
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "copy-btn";
+        btn.setAttribute("aria-label", "Copy code");
+        btn.innerHTML = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-copy"/></svg>';
+        btn.addEventListener("click", async () => {
+          const code = pre.querySelector("code")?.textContent ?? pre.textContent;
+          try {
+            await navigator.clipboard.writeText(code);
+            btn.classList.add("copied");
+            btn.innerHTML = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>';
+            setTimeout(() => {
+              btn.classList.remove("copied");
+              btn.innerHTML = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-copy"/></svg>';
+            }, 1500);
+          } catch (e) { console.error(e); }
+        });
+        pre.appendChild(btn);
+      });
+    }
+
+    // ---------- Scroll progress ----------
+    function setupScrollProgress() {
+      const bar = document.getElementById("scroll-progress");
+      if (!bar) return;
+      const onScroll = () => {
+        const h = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        const p = h > 0 ? (document.documentElement.scrollTop / h * 100) : 0;
+        bar.style.width = p + "%";
+      };
+      window.addEventListener("scroll", onScroll, { passive: true });
+      onScroll();
+    }
+
+    // ---------- Boot ----------
+    document.addEventListener("DOMContentLoaded", () => {
+      applyThemeIcon();
+      injectAnchors();
+      injectCopyButtons();
+      renderMermaid();
+      setupTocSpy();
+      setupScrollProgress();
+    });
+  </script>
+</body>
+</html>

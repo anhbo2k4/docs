@@ -1,0 +1,334 @@
+﻿<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Field Work Delivery Blueprint v2.1.0</title>
+<style>
+  :root {
+    --bg: #fafaf7;
+    --surface: #ffffff;
+    --surface-2: #f5f3ee;
+    --border: #e6e1d8;
+    --text: #1a1a1a;
+    --text-muted: #6b6760;
+    --brand: #cc6633;
+    --brand-2: #b85528;
+    --accent: #d97757;
+    --green: #2e7d32;
+    --amber: #c87a00;
+    --red: #b3261e;
+    --code-bg: #f3efe7;
+    --shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+    --rec-label: "â˜… Recommended";
+  }
+  html[data-theme="dark"] {
+    --bg: #18171a;
+    --surface: #1f1d20;
+    --surface-2: #26242a;
+    --border: #34313a;
+    --text: #ece9e3;
+    --text-muted: #9b9690;
+    --brand: #e08561;
+    --brand-2: #c96a45;
+    --accent: #f0a07a;
+    --green: #6abf6f;
+    --amber: #f0b94e;
+    --red: #ef6b62;
+    --code-bg: #25232a;
+    --shadow: 0 1px 3px rgba(0,0,0,.4), 0 1px 2px rgba(0,0,0,.3);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    font-size: 15px;
+  }
+  .topbar {
+    position: sticky; top: 0; z-index: 10;
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 20px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    box-shadow: var(--shadow);
+  }
+  .topbar .brand {
+    font-weight: 700;
+    color: var(--brand);
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    font-size: 12px;
+  }
+  .topbar .doc-id {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .topbar .spacer { flex: 1; }
+  .topbar button {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 5px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+  }
+  .topbar button:hover { background: var(--surface-2); }
+  main { max-width: 1100px; margin: 0 auto; padding: 32px 24px 80px; }
+  h1 { font-size: 32px; line-height: 1.2; margin: 0 0 8px; }
+  h2 { font-size: 22px; margin: 40px 0 12px; padding-top: 8px; border-top: 1px solid var(--border); }
+  h3 { font-size: 17px; margin: 24px 0 8px; color: var(--text); }
+  .subtitle { color: var(--text-muted); font-size: 17px; margin-bottom: 8px; }
+  .meta { display: flex; flex-wrap: wrap; gap: 12px; font-size: 13px; color: var(--text-muted); margin-bottom: 24px; }
+  .meta .pill {
+    padding: 3px 10px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-weight: 500;
+  }
+  .meta .pill.brand { background: var(--brand); color: white; border-color: var(--brand); }
+  .meta .pill.green { background: var(--green); color: white; border-color: var(--green); }
+  a { color: var(--brand-2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; font-size: 13px; font-family: "JetBrains Mono", Menlo, Consolas, monospace; }
+  pre { background: var(--code-bg); padding: 14px 16px; border-radius: 8px; overflow-x: auto; font-size: 13px; line-height: 1.5; }
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
+  th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--surface-2); font-weight: 600; }
+  .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    box-shadow: var(--shadow);
+  }
+  .card h3 { margin-top: 0; }
+  .card .label { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted); }
+  .card.brand { border-left: 3px solid var(--brand); }
+  .card.green { border-left: 3px solid var(--green); }
+  .card.amber { border-left: 3px solid var(--amber); }
+  .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 999px; font-weight: 600; }
+  .badge.green { background: rgba(46,125,50,.12); color: var(--green); }
+  .badge.amber { background: rgba(200,122,0,.14); color: var(--amber); }
+  .badge.brand { background: rgba(204,102,51,.14); color: var(--brand); }
+  .callout {
+    border-left: 3px solid var(--brand);
+    background: var(--surface-2);
+    padding: 12px 16px;
+    border-radius: 0 8px 8px 0;
+    margin: 16px 0;
+  }
+  .callout .callout-title { font-weight: 600; margin-bottom: 4px; }
+  .callout.green { border-left-color: var(--green); }
+  .callout.amber { border-left-color: var(--amber); }
+  .timeline { display: flex; flex-direction: column; gap: 10px; counter-reset: step; }
+  .step {
+    display: grid;
+    grid-template-columns: 36px 1fr;
+    gap: 12px;
+    align-items: start;
+  }
+  .step::before {
+    counter-increment: step;
+    content: counter(step);
+    width: 32px; height: 32px;
+    background: var(--brand);
+    color: white;
+    border-radius: 50%;
+    font-weight: 700;
+    display: grid;
+    place-items: center;
+    font-size: 14px;
+  }
+  .step-body { padding-top: 4px; }
+  .step-body .step-title { font-weight: 600; }
+  .toc {
+    position: fixed; right: 24px; top: 80px;
+    width: 220px;
+    font-size: 13px;
+    border-left: 2px solid var(--border);
+    padding-left: 14px;
+    color: var(--text-muted);
+  }
+  .toc a { display: block; padding: 4px 0; color: var(--text-muted); }
+  .toc a:hover { color: var(--brand); text-decoration: none; }
+  @media (max-width: 1280px) { .toc { display: none; } }
+  .footer { margin-top: 60px; padding-top: 24px; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <span class="brand">ðŸ“‹ Blueprint</span>
+  <span class="doc-id">field_work_delivery / v2.1.0</span>
+  <span class="spacer"></span>
+  <button id="theme-toggle" title="Toggle theme">ðŸŒ— Theme</button>
+</header>
+
+<nav class="toc" aria-label="Contents">
+  <strong style="color:var(--text);display:block;margin-bottom:6px;">Contents</strong>
+  <a href="#overview">Overview</a>
+  <a href="#status">Phase 0 status</a>
+  <a href="#decisions">9 decisions</a>
+  <a href="#adrs">14 ADRs</a>
+  <a href="#tree">Folder tree</a>
+  <a href="#sprints">Sprint roadmap</a>
+  <a href="#provisional">Provisional items</a>
+  <a href="#next">Next 3 things</a>
+  <a href="#changelog">Changelog v2.0</a>
+</nav>
+
+<main>
+  <h1 id="overview">Field Work + Contracting Delivery Blueprint</h1>
+  <p class="subtitle">Unified Flutter mobile app for field workers, syncing offline-first to Odoo 19 Enterprise via FastAPI. Production blueprint: 229 files, 14 ADRs, 11 epics, 11 sprints.</p>
+
+  <div class="meta">
+    <span class="pill brand">v2.1.0</span>
+    <span class="pill green">Phase 0 closed</span>
+    <span class="pill">Sprint 1 active</span>
+    <span class="pill">Updated 2026-05-15</span>
+    <span class="pill">~22 weeks to pilot</span>
+  </div>
+
+  <div class="callout green">
+    <div class="callout-title">âœ“ Phase 0 closed in v2.1.0</div>
+    All 9 Phase 0 decisions resolved. 5 are sponsor-confirmed (Decided) via ADRs ADR-010 through ADR-014. 4 are working defaults (Provisional) under PM confirmation SLA â€” they unblock S1 immediately.
+  </div>
+
+  <h2 id="status">Phase 0 status snapshot</h2>
+  <div class="grid">
+    <div class="card brand">
+      <div class="label">Decided</div>
+      <h3>5 / 9 decisions</h3>
+      <p>Sponsor sign-off captured for Odoo 19 EE, Twilio SMS, AWS S3, custom GPS model, custom Odoo module. ADRs 010â€“014 land in this release.</p>
+    </div>
+    <div class="card amber">
+      <div class="label">Provisional</div>
+      <h3>4 / 9 decisions</h3>
+      <p>Defaults safe to start work: module list, phone mapping, SLA, orchestration. PM owns 5â€“7 day confirmation SLA from S0 workshop.</p>
+    </div>
+    <div class="card green">
+      <div class="label">Sprint 1</div>
+      <h3>Active, unblocked</h3>
+      <p>Six P0 stories in flight: Flutter scaffold, Riverpod + go_router, secure storage, Drift skeleton, CI pipeline, Sentry init.</p>
+    </div>
+  </div>
+
+  <h2 id="decisions">The 9 Phase 0 decisions</h2>
+  <table>
+    <thead>
+      <tr><th>ID</th><th>Topic</th><th>Status</th><th>Answer</th><th>Reference</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>DEC-001</td><td>Odoo version + edition</td><td><span class="badge green">Decided</span></td><td>Odoo 19 Enterprise</td><td>ADR-011</td></tr>
+      <tr><td>DEC-002</td><td>Installed Odoo modules</td><td><span class="badge amber">Provisional</span></td><td>FSM + Project + Planning + HR + Survey + Maintenance</td><td>odoo-module-mapping.md</td></tr>
+      <tr><td>DEC-003</td><td>Custom Odoo module scope</td><td><span class="badge green">Decided</span></td><td>Build <code>field_mobile_sync</code> v0.1.0</td><td>ADR-014</td></tr>
+      <tr><td>DEC-004</td><td>GPS storage target</td><td><span class="badge green">Decided</span></td><td>Custom <code>field.gps.ping</code> + denormalised summary</td><td>ADR-013</td></tr>
+      <tr><td>DEC-005</td><td>SMS provider</td><td><span class="badge green">Decided</span></td><td>Twilio Verify only for MVP</td><td>ADR-010</td></tr>
+      <tr><td>DEC-006</td><td>Phone-to-employee mapping</td><td><span class="badge amber">Provisional</span></td><td><code>hr.employee.work_phone</code>, E.164</td><td>data/odoo-mapping.md</td></tr>
+      <tr><td>DEC-007</td><td>Object storage</td><td><span class="badge green">Decided</span></td><td>AWS S3 <code>ap-southeast-1</code>, SSE-S3</td><td>ADR-012</td></tr>
+      <tr><td>DEC-008</td><td>Odoo SLA / DR</td><td><span class="badge amber">Provisional</span></td><td>Pilot proceeds with degraded SLA documented</td><td>runbooks/odoo-dr-upgrade.md</td></tr>
+      <tr><td>DEC-009</td><td>Container orchestration</td><td><span class="badge amber">Provisional</span></td><td>Single-VM Docker Compose on EC2 for pilot</td><td>architecture/deployment.md</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="adrs">14 Architectural Decisions of Record</h2>
+  <div class="grid">
+    <div class="card"><div class="label">ADR-001 â†’ 005</div><h3>Foundation stack</h3><p>Flutter unified app, Supabase Edge OTP, SQLite local store, FastAPI integration layer, no direct mobile-to-Odoo.</p></div>
+    <div class="card"><div class="label">ADR-006 â†’ 009</div><h3>Mobile internals</h3><p>Riverpod 2.x, idempotency by <code>client_id</code>, on-device Whisper, Drift over sqflite.</p></div>
+    <div class="card brand"><div class="label">ADR-010 â†’ 014 â˜… new</div><h3>Phase 0 closes</h3><p>Twilio only, Odoo 19 EE, AWS S3 apse1, custom GPS model, <code>field_mobile_sync</code> custom module.</p></div>
+  </div>
+
+  <h2 id="tree">Repo tree (229 files)</h2>
+  <pre>field_work_delivery/
+â”œâ”€â”€ README.md (v2.1.0) Â· AGENTS.md Â· WORKING.md Â· CHANGELOG.md Â· SECURITY.md
+â”œâ”€â”€ governance/         RACI Â· DoR/DoD Â· ceremonies Â· onboarding Â· comms Â· self-critique
+â”œâ”€â”€ engineering/        18 docs: dev-env Â· standards Â· CI Â· A11Y Â· perf Â· i18n Â· Odoo mapping
+â”œâ”€â”€ architecture/       C4 (context/container/component) Â· NFR Â· sequence Â· deployment
+â”œâ”€â”€ adr/                14 ADRs (ADR-001 â€¦ ADR-014)
+â”œâ”€â”€ epics/              11 epics + ~70 user stories (EPIC-00 â€¦ EPIC-10)
+â”œâ”€â”€ sprints/            11 sprint plans (S0 â€¦ S10)
+â”œâ”€â”€ traceability/       FR matrix Â· decision-log (closed) Â· QA mapping Â· glossary
+â”œâ”€â”€ data/               SQLite Â· Postgres Â· Odoo mapping Â· sync state machine Â· ERD
+â”œâ”€â”€ api-contracts/      auth Â· shifts Â· sync Â· media Â· errors + openapi.yaml
+â”œâ”€â”€ security/           STRIDE Â· secrets Â· PII Â· data-classification
+â”œâ”€â”€ qa/                 strategy Â· test-cases Â· pilot-gate Â· load Â· UAT Â· test-data
+â”œâ”€â”€ runbooks/           rollback Â· incident Â· sync-recovery Â· OTP Â· mobile-release Â· Odoo DR
+â””â”€â”€ backlog/            release Â· risk Â· NFR Â· RAID Â· capacity Â· releases template</pre>
+
+  <h2 id="sprints">Sprint roadmap (locked, 22 weeks)</h2>
+  <div class="timeline">
+    <div class="step"><div class="step-body"><div class="step-title">S0 â€” Discovery & Build Authorization <span class="badge green">Done</span></div>9 decisions closed in v2.1.0. SOW signed. Kickoff scheduled.</div></div>
+    <div class="step"><div class="step-body"><div class="step-title">S1 â€” Project Foundation <span class="badge brand">Active</span></div>Flutter scaffold, CI, secure storage, Drift skeleton, Sentry. Exit: any engineer ships in 30 min.</div></div>
+    <div class="step"><div class="step-body"><div class="step-title">S2 â€” Auth & Employee Context</div>OTP login via Supabase Edge + Twilio. Employee mapping by <code>work_phone</code>.</div></div>
+    <div class="step"><div class="step-body"><div class="step-title">S3 â€” Shifts Read Workflow</div>My Shifts dashboard + Shift Detail (online read of Odoo).</div></div>
+    <div class="step"><div class="step-body"><div class="step-title">S4 â€” SQLite Offline Foundation</div>DAOs, sync_queue table, sync state UI primitives.</div></div>
+    <div class="step"><div class="step-body"><div class="step-title">S5 â€” Core Field Capture</div>PPE checks, pre-shift form, GPS check-in via <code>field.gps.ping</code>.</div></div>
+    <div class="step"><div class="step-body"><div class="step-title">S6 â€” Evidence Capture</div>Compressed photos to S3 presigned URL, voice notes + on-device Whisper.</div></div>
+    <div class="step"><div class="step-body"><div class="step-title">S7 â€” Mobile Sync Engine</div>WorkManager / BGTaskScheduler, retry with backoff, dead-letter handling.</div></div>
+    <div class="step"><div class="step-body"><div class="step-title">S8 â€” Backend Sync Intake</div>FastAPI ingest, Celery enqueue, idempotency by <code>client_id</code>.</div></div>
+    <div class="step"><div class="step-body"><div class="step-title">S9 â€” Odoo Write Path</div>Odoo JSON-RPC adapter; <code>field_mobile_sync</code> module live in staging.</div></div>
+    <div class="step"><div class="step-body"><div class="step-title">S10 â€” Hardening & Pilot</div>Perf tuning, security audit, device matrix, phased pilot launch.</div></div>
+  </div>
+
+  <h2 id="provisional">4 Provisional items â€” PM confirmation checklist</h2>
+  <div class="callout amber">
+    <div class="callout-title">âš  Confirm at S0 workshop, 5â€“7 day SLA</div>
+    None block S1. If any flips, the owning doc and CHANGELOG are amended.
+  </div>
+  <table>
+    <thead><tr><th>Item</th><th>Default assumption</th><th>Risk if wrong</th></tr></thead>
+    <tbody>
+      <tr><td>DEC-002 modules</td><td>Planning module licensed and active</td><td>Shift entity falls back to <code>project.task</code> only</td></tr>
+      <tr><td>DEC-006 phone mapping</td><td><code>work_phone</code> populated in E.164 for all field workers</td><td>Data cleanup script needed before S2 ships</td></tr>
+      <tr><td>DEC-008 SLA</td><td>Acceptable downtime budget for pilot Odoo</td><td>Drives RTO/RPO numbers in DR runbook</td></tr>
+      <tr><td>DEC-009 orchestration</td><td>Single-VM Docker Compose on EC2 for pilot</td><td>Switch to ECS Fargate before S10 if budget shifts</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="next">Next 3 things</h2>
+  <div class="timeline">
+    <div class="step"><div class="step-body"><div class="step-title">Run S0 confirmation pass with sponsor</div>Flip the 4 Provisional items to Decided. Owner: PM.</div></div>
+    <div class="step"><div class="step-body"><div class="step-title">Stand up Sprint 1 ceremonies</div>Planning, daily, review, retro per <code>governance/sprint-ceremonies.md</code>.</div></div>
+    <div class="step"><div class="step-body"><div class="step-title">Kick off US-PLAT-001 + US-PLAT-002</div>Flutter scaffold and Riverpod skeleton â€” first two stories of S1.</div></div>
+  </div>
+
+  <h2 id="changelog">v2.1.0 changelog highlights</h2>
+  <ul>
+    <li>5 new ADRs accepted (ADR-010 Twilio Â· ADR-011 Odoo 19 EE Â· ADR-012 S3 Â· ADR-013 GPS model Â· ADR-014 <code>field_mobile_sync</code> module).</li>
+    <li><code>traceability/decision-log.md</code> rewritten â€” all 9 Phase 0 decisions resolved.</li>
+    <li><code>WORKING.md</code> shifted from Phase 0 close-out to S1 kickoff. Open blockers cleared.</li>
+    <li><code>README.md</code> bumped to v2.1.0; quick links re-grouped (planning / engineering / QA / architecture / repo); duplicates removed.</li>
+    <li><code>EPIC-00-discovery</code> marked Done; <code>sprint-01-foundation</code> set to Active.</li>
+    <li><code>governance/self-critique.md</code> round 5 logged: decision-gap closed.</li>
+    <li>Path A (Odoo Community) removed from scope per ADR-011.</li>
+  </ul>
+
+  <p class="footer">
+    Source: <code>workspace/field_work_delivery/</code> Â· Generated 2026-05-15 Â·
+    <a href="../field_work_delivery/README.md">README</a> Â·
+    <a href="../field_work_delivery/CHANGELOG.md">CHANGELOG</a> Â·
+    <a href="../field_work_delivery/WORKING.md">WORKING</a> Â·
+    <a href="../field_work_delivery/adr/">ADRs</a> Â·
+    <a href="../field_work_delivery/epics/">Epics</a> Â·
+    <a href="../field_work_delivery/sprints/">Sprints</a>
+  </p>
+</main>
+
+<script>
+  const html = document.documentElement;
+  const stored = localStorage.getItem('blueprint-theme');
+  if (stored) html.setAttribute('data-theme', stored);
+  document.getElementById('theme-toggle').addEventListener('click', () => {
+    const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', next);
+    localStorage.setItem('blueprint-theme', next);
+  });
+</script>
+</body>
+</html>
+

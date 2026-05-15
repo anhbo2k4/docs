@@ -1,0 +1,22 @@
+Proprietary and Confidential
+
+Copyright (c) 2026 Field Work + Contracting Delivery Team.
+All rights reserved.
+
+This document set is the confidential delivery blueprint for the Unified
+Flutter mobile app program. It is shared under non-disclosure with the
+sponsor, the implementation team, and approved reviewers only.
+
+No part of this work may be reproduced, distributed, or transmitted in any
+form or by any means, including photocopying, recording, or other
+electronic or mechanical methods, without the prior written permission of
+the program sponsor, except in the case of brief quotations embodied in
+internal reviews.
+
+If you have received this document set in error, please notify the
+program sponsor and destroy any local copies.
+
+For licensing of any code artifacts that may later accompany this
+blueprint (mobile/, backend/, infra/, edge/), see the LICENSE files in
+those subdirectories. Until those exist, the same proprietary terms
+apply.
